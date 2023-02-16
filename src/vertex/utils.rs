@@ -22,7 +22,11 @@ where
 
             retval_vertex
         } else {
-            panic!("Cannot add {} and {}.", self.type_name(), other.type_name());
+            panic!(
+                "Cannot add {:?} and {:?}.",
+                self.type_name(),
+                other.type_name()
+            );
         }
     }
 }
@@ -52,7 +56,7 @@ where
             retval_vertex
         } else {
             panic!(
-                "Cannot substract {} from, {}.",
+                "Cannot substract {:?} from, {:?}.",
                 other.type_name(),
                 self.type_name()
             );
