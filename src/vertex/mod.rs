@@ -1,4 +1,6 @@
-pub mod utils;
+mod utils;
+
+pub use utils::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Vertex<T> {
