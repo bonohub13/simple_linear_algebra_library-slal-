@@ -1,6 +1,7 @@
-mod utils;
+mod convert;
+mod math;
 
-pub use utils::*;
+pub use math::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Vertex<T> {
@@ -8,7 +9,22 @@ pub struct Vertex<T> {
     vertical: bool,
 }
 
-impl<T: Copy + std::ops::Add + std::ops::Sub + std::ops::Mul + std::ops::Div> Vertex<T> {
+impl<T> Vertex<T>
+where
+    T: Copy + std::ops::Add + std::ops::Sub + std::ops::Mul + std::ops::Div,
+{
+    /**
+    Create new vector from slice with size x
+
+    # Example
+    ```
+    use slal::vertex::Vertex;
+
+    // Vector<f32> with size 2
+    //  | 1.0 1.1 |
+    let v = Vertex::<f32>::new(&[1.0, 1.1]);
+    ```
+     */
     pub fn new(vertex: &[T]) -> Self {
         Self {
             v: vertex.to_vec(),
@@ -31,34 +47,6 @@ impl<T: Copy + std::ops::Add + std::ops::Sub + std::ops::Mul + std::ops::Div> Ve
      */
     pub fn t(&mut self) {
         self.vertical = !self.vertical;
-    }
-
-    /**
-    Convert vertex with values of type A into vertex with values of type B.
-
-    # Examples
-    ```
-    use slal::vertex::Vertex;
-
-    let v = Vertex::new(&[1, 2, 3]);    // Vertex::<i32>
-    let v_f64 = v.convert::<f64>();     // Vertex::<f64>
-    ```
-     */
-    pub fn convert<U>(self) -> Vertex<U>
-    where
-        U: Copy
-            + std::ops::Add
-            + std::ops::Sub
-            + std::ops::Mul
-            + std::ops::Div
-            + std::convert::From<T>,
-    {
-        let converted: Vec<U> = self.to_vec().iter().map(|&value| value.into()).collect();
-
-        Vertex::<U> {
-            v: converted,
-            vertical: self.vertical,
-        }
     }
 
     /**
@@ -245,14 +233,6 @@ mod test {
         let v = Vertex::<i32>::empty();
 
         assert_eq!(v, Vertex::<i32>::new(&[]));
-    }
-
-    #[test]
-    fn convert() {
-        let v = Vertex::new(&[1, 2, 3]);
-        let v_f64 = v.convert::<f64>();
-
-        assert_eq!(v_f64, Vertex::new(&[1.0, 2.0, 3.0]));
     }
 
     #[test]

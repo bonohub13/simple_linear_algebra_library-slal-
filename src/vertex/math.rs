@@ -1,68 +1,103 @@
-impl<T> std::ops::Add for super::Vertex<T>
-where
-    T: Copy + std::ops::Add<Output = T> + std::ops::Sub + std::ops::Mul + std::ops::Div,
-{
-    type Output = super::Vertex<T>;
+macro_rules! add_impl {
+    ($($t:ty)*) => ($(
+        impl std::ops::Add for super::Vertex<$t> {
+            type Output = super::Vertex<$t>;
 
-    fn add(self, other: super::Vertex<T>) -> Self {
-        use super::Vertex;
+            fn add(self, other: super::Vertex<$t>) -> super::Vertex<$t> {
+                use super::Vertex;
 
-        if self.len() == other.len() && self.is_transposed() == other.is_transposed() {
-            let retval: Vec<_> = self
-                .to_vec()
-                .iter()
-                .enumerate()
-                .map(|(idx, &v_i)| v_i + other.to_vec()[idx])
-                .collect();
-            let mut retval_vertex = Vertex::<T>::new(retval.as_slice());
+                if self.len() == other.len() && self.is_transposed() == other.is_transposed() {
+                    let retval: Vec<$t> = self
+                        .to_vec()
+                        .iter()
+                        .enumerate()
+                        .map(|(idx, &v_i)| v_i + other.to_vec()[idx])
+                        .collect();
+                    let mut retval_vertex = Vertex::<$t>::new(retval.as_slice());
 
-            if self.is_transposed() {
-                retval_vertex.t();
+                    if self.is_transposed() {
+                        retval_vertex.t();
+                    }
+
+                    retval_vertex
+                } else {
+                    panic!(
+                        "Cannot add {:?} and {:?}.",
+                        self.type_name(),
+                        other.type_name()
+                    );
+                }
             }
-
-            retval_vertex
-        } else {
-            panic!(
-                "Cannot add {:?} and {:?}.",
-                self.type_name(),
-                other.type_name()
-            );
         }
-    }
+    )*)
 }
 
-impl<T> std::ops::Sub for super::Vertex<T>
-where
-    T: Copy + std::ops::Add + std::ops::Sub<Output = T> + std::ops::Mul + std::ops::Div,
-{
-    type Output = super::Vertex<T>;
+add_impl! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
 
-    fn sub(self, other: super::Vertex<T>) -> Self {
-        use super::Vertex;
+macro_rules! sub_impl {
+    ($($t:ty)*) => ($(
+        impl std::ops::Sub for super::Vertex<$t>
+        {
+            type Output = super::Vertex<$t>;
 
-        if self.len() == other.len() && self.is_transposed() == other.is_transposed() {
-            let retval: Vec<_> = self
-                .to_vec()
-                .iter()
-                .enumerate()
-                .map(|(idx, &v_i)| v_i - other.to_vec()[idx])
-                .collect();
-            let mut retval_vertex = Vertex::<T>::new(retval.as_slice());
+            fn sub(self, other: super::Vertex<$t>) -> Self {
+                use super::Vertex;
 
-            if self.is_transposed() {
-                retval_vertex.t();
+                if self.len() == other.len() && self.is_transposed() == other.is_transposed() {
+                    let retval: Vec<$t> = self
+                        .to_vec()
+                        .iter()
+                        .enumerate()
+                        .map(|(idx, &v_i)| v_i - other.to_vec()[idx])
+                        .collect();
+                    let mut retval_vertex = Vertex::<$t>::new(retval.as_slice());
+
+                    if self.is_transposed() {
+                        retval_vertex.t();
+                    }
+
+                    retval_vertex
+                } else {
+                    panic!(
+                        "Cannot substract {:?} from, {:?}.",
+                        other.type_name(),
+                        self.type_name()
+                    );
+                }
             }
-
-            retval_vertex
-        } else {
-            panic!(
-                "Cannot substract {:?} from, {:?}.",
-                other.type_name(),
-                self.type_name()
-            );
         }
-    }
+    )*)
 }
+
+sub_impl! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+
+macro_rules! mul_scala_impl {
+    ($($t:ty)*) => ($(
+        impl std::ops::Mul<super::Vertex<$t>> for $t
+        {
+            type Output = super::Vertex<$t>;
+
+            fn mul(self, other: super::Vertex<$t>) -> super::Vertex<$t> {
+                use super::Vertex;
+
+                let retval: Vec<$t> = other
+                    .to_vec()
+                    .iter()
+                    .map(|&v_i| v_i * self)
+                    .collect();
+                let mut retval_vertex = Vertex::<$t>::new(retval.as_slice());
+
+                if other.is_transposed() {
+                    retval_vertex.t();
+                }
+
+                retval_vertex
+            }
+        }
+    )*)
+}
+
+mul_scala_impl! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
 
 #[cfg(test)]
 mod test {
@@ -290,5 +325,109 @@ mod test {
         let w = Vertex::<f64>::new(&[0.4, 0.5, 0.6]);
 
         assert_eq!(w - v, Vertex::<f64>::new(&[-0.6, -1.5, -2.4]));
+    }
+
+    #[test]
+    fn mul_scala_i8() {
+        let v = Vertex::<i8>::new(&[1, 2, 3]);
+
+        assert_eq!(-3 * v, Vertex::<i8>::new(&[-3, -6, -9]));
+    }
+
+    #[test]
+    fn mul_scala_u8() {
+        let v = Vertex::<u8>::new(&[1, 2, 3]);
+
+        assert_eq!(3 * v, Vertex::<u8>::new(&[3, 6, 9]));
+    }
+
+    #[test]
+    fn mul_scala_i16() {
+        let v = Vertex::<i16>::new(&[1, 2, 3]);
+
+        assert_eq!(-3 * v, Vertex::<i16>::new(&[-3, -6, -9]));
+    }
+
+    #[test]
+    fn mul_scala_u16() {
+        let v = Vertex::<u16>::new(&[1, 2, 3]);
+
+        assert_eq!(3 * v, Vertex::<u16>::new(&[3, 6, 9]));
+    }
+
+    #[test]
+    fn mul_scala_i32() {
+        let v = Vertex::<i32>::new(&[1, 2, 3]);
+
+        assert_eq!(-3 * v, Vertex::<i32>::new(&[-3, -6, -9]));
+    }
+
+    #[test]
+    fn mul_scala_u32() {
+        let v = Vertex::<u32>::new(&[1, 2, 3]);
+
+        assert_eq!(3 * v, Vertex::<u32>::new(&[3, 6, 9]));
+    }
+
+    #[test]
+    fn mul_scala_i64() {
+        let v = Vertex::<i64>::new(&[1, 2, 3]);
+
+        assert_eq!(-3 * v, Vertex::<i64>::new(&[-3, -6, -9]));
+    }
+
+    #[test]
+    fn mul_scala_u64() {
+        let v = Vertex::<u64>::new(&[1, 2, 3]);
+
+        assert_eq!(3 * v, Vertex::<u64>::new(&[3, 6, 9]));
+    }
+
+    #[test]
+    fn mul_scala_i128() {
+        let v = Vertex::<i128>::new(&[1, 2, 3]);
+
+        assert_eq!(-3 * v, Vertex::<i128>::new(&[-3, -6, -9]));
+    }
+
+    #[test]
+    fn mul_scala_u128() {
+        let v = Vertex::<u128>::new(&[1, 2, 3]);
+
+        assert_eq!(3 * v, Vertex::<u128>::new(&[3, 6, 9]));
+    }
+
+    #[test]
+    fn mul_scala_isize() {
+        let v = Vertex::<isize>::new(&[1, 2, 3]);
+
+        assert_eq!(-3 * v, Vertex::<isize>::new(&[-3, -6, -9]));
+    }
+
+    #[test]
+    fn mul_scala_usize() {
+        let v = Vertex::<usize>::new(&[1, 2, 3]);
+
+        assert_eq!(3 * v, Vertex::<usize>::new(&[3, 6, 9]));
+    }
+
+    #[test]
+    fn mul_scala_f32() {
+        let v = Vertex::<f32>::new(&[0.1, 0.2, 0.3]);
+
+        assert_eq!(
+            -3.0 * v,
+            Vertex::<f32>::new(&[-3.0 * 0.1, -3.0 * 0.2, -3.0 * 0.3])
+        );
+    }
+
+    #[test]
+    fn mul_scala_f64() {
+        let v = Vertex::<f64>::new(&[1.1, 2.1, 3.1]);
+
+        assert_eq!(
+            3.0 * v,
+            Vertex::<f64>::new(&[3.0 * 1.1, 3.0 * 2.1, 3.0 * 3.1])
+        );
     }
 }
