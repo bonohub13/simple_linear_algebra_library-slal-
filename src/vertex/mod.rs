@@ -3,7 +3,7 @@ mod math;
 
 pub use math::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Vertex<T> {
     v: Vec<T>,
     vertical: bool,
