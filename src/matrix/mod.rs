@@ -1,5 +1,10 @@
 mod math;
 
+#[cfg(test)]
+mod math_test;
+
+pub use math::*;
+
 #[derive(Debug, PartialEq)]
 pub struct Matrix<T> {
     m: Vec<Vec<T>>,

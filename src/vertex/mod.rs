@@ -1,6 +1,10 @@
 mod convert;
 mod math;
 
+#[cfg(test)]
+mod math_test;
+
+pub use convert::*;
 pub use math::*;
 
 #[derive(Debug, PartialEq, Clone)]
