@@ -143,7 +143,11 @@ macro_rules! impl_mul_vector {
                 use crate::vertex::Vertex;
                 use std::iter::zip;
 
-                if other.is_transposed() {
+                if self.size() == (1, 1) {
+                    let scala = self.to_vec()[0][0];
+
+                    scala * other
+                } else if other.is_transposed() {
                     if self.size().0 == other.len() {
                         let v = other.to_vec();
                         let prod: Vec<$t> = self
@@ -187,7 +191,11 @@ macro_rules! impl_mul_with_vector {
             fn mul(self, other: super::Matrix<$t>) -> crate::vertex::Vertex<$t> {
                 use crate::vertex::Vertex;
 
-                if !self.is_transposed() {
+                if other.size() == (1, 1) {
+                    let scala = other.to_vec()[0][0];
+
+                    scala * self
+                } else if !self.is_transposed() {
                     let size = other.size();
                     if size.1 == self.len() {
                         let m = other.to_vec();
@@ -223,3 +231,53 @@ macro_rules! impl_mul_with_vector {
 }
 
 impl_mul_with_vector! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+
+macro_rules! impl_mul {
+    ($($t:ty)*) => ($(
+        impl std::ops::Mul<super::Matrix<$t>> for super::Matrix<$t> {
+            type Output = super::Matrix<$t>;
+
+            fn mul(self, other: Self) -> Self {
+                use super::Matrix;
+
+                let size_self = self.size();
+                let size_other = other.size();
+
+                let other_vec = other.to_vec();
+
+                if size_self.0 == size_other.1 {
+                    let rv_vec: Vec<Vec<$t>> = self
+                        .to_vec()
+                        .iter()
+                        .enumerate()
+                        .map(|(idx, m_i)| {
+                            (0..size_other.0)
+                                .into_iter()
+                                .map(|inner_idx| {
+                                    let rv_ij: Vec<$t> = m_i
+                                        .iter()
+                                        .map(|m_ij| *m_ij * other_vec[idx][inner_idx])
+                                        .collect();
+
+                                    rv_ij.iter().sum()
+                                })
+                                .collect::<Vec<$t>>()
+                        })
+                        .collect();
+                    let rv: Vec<&[$t]> = rv_vec
+                        .iter()
+                        .map(|rv_i| rv_i.as_slice())
+                        .collect();
+
+                    Matrix::<$t>::new(rv.as_slice()).unwrap()
+                } else {
+                    panic!(
+                        "Cannot calculate product of two matrices when horizontal size of matrix A does not match vertical size of matrix B."
+                        );
+                }
+            }
+        }
+    )*)
+}
+
+impl_mul! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
