@@ -1,11 +1,16 @@
+mod linear;
 mod math;
 
 #[cfg(test)]
+mod linear_test;
+#[cfg(test)]
 mod math_test;
 
+pub use crate::linear::Dot;
+pub use linear::*;
 pub use math::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Matrix<T> {
     m: Vec<Vec<T>>,
     size: [usize; 2],

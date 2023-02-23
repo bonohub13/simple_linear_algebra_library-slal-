@@ -1,21 +1,35 @@
 mod convert;
+mod linear;
 mod math;
 
 #[cfg(test)]
+mod linear_test;
+#[cfg(test)]
 mod math_test;
 
+pub use crate::linear::Dot;
 pub use convert::*;
+pub use linear::*;
 pub use math::*;
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Vertex<T> {
+pub struct Vertex<T>
+where
+    T: Sized,
+{
     v: Vec<T>,
     vertical: bool,
 }
 
 impl<T> Vertex<T>
 where
-    T: Copy + std::ops::Add + std::ops::Sub + std::ops::Mul + std::ops::Div,
+    T: Copy
+        + std::fmt::Debug
+        + std::iter::Sum<<T as std::ops::Mul>::Output>
+        + std::ops::Add
+        + std::ops::Sub
+        + std::ops::Mul
+        + std::ops::Div,
 {
     /**
     Create new vector from slice with size x
@@ -47,10 +61,10 @@ where
     }
 
     /**
-    Performs vertex transpose.
+    Check if vertex is empty.
      */
-    pub fn t(&mut self) {
-        self.vertical = !self.vertical;
+    pub fn is_empty(&self) -> bool {
+        self.v.is_empty()
     }
 
     /**
@@ -61,25 +75,18 @@ where
     }
 
     /**
-    Check if vertex is empty.
-     */
-    pub fn is_empty(&self) -> bool {
-        self.v.is_empty()
-    }
-
-    /**
-    Clones `self` into `Vec<T>`.
+    Get the length of a vertex.
 
     # Examples
     ```
     use slal::vertex::Vertex;
 
-    let v = Vertex::<u32>::new(&[1, 2, 3]);
-    let v_vec = v.to_vec(); // returns vec![1, 2, 3]
+    let v = Vertex::new(&[1, 2, 3]);
+    let v_len = v.len(); // 3
     ```
-    */
-    pub fn to_vec(&self) -> Vec<T> {
-        self.v.clone()
+     */
+    pub fn len(&self) -> usize {
+        self.v.len()
     }
 
     /**
@@ -98,18 +105,25 @@ where
     }
 
     /**
-    Get the length of a vertex.
+    Performs vertex transpose.
+     */
+    pub fn t(&mut self) {
+        self.vertical = !self.vertical;
+    }
+
+    /**
+    Clones `self` into `Vec<T>`.
 
     # Examples
     ```
     use slal::vertex::Vertex;
 
-    let v = Vertex::new(&[1, 2, 3]);
-    let v_len = v.len(); // 3
+    let v = Vertex::<u32>::new(&[1, 2, 3]);
+    let v_vec = v.to_vec(); // returns vec![1, 2, 3]
     ```
-     */
-    pub fn len(&self) -> usize {
-        self.v.len()
+    */
+    pub fn to_vec(&self) -> Vec<T> {
+        self.v.clone()
     }
 
     /**
