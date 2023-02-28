@@ -187,3 +187,72 @@ fn dot_with_vertex_invalid() {
         ))
     );
 }
+
+#[test]
+fn mul_matrix() {
+    let m = Matrix::new(&[&[1, -2, 3], &[-4, 5, -6], &[7, -8, 9]]).unwrap();
+    let n = Matrix::new(&[&[1, -8, 27], &[-64, 125, -216], &[343, -512, 729]]).unwrap();
+
+    assert!(
+        m * n
+            == Matrix::new(&[
+                &[1 + 128 + 1029, -8 + -250 + -1536, 27 + 432 + 2187],
+                &[
+                    -4 + 5 * -64 + -6 * 343,
+                    32 + 5 * 125 + 6 * 512,
+                    -4 * 27 + 5 * -216 + -6 * 729
+                ],
+                &[
+                    7 + -8 * -64 + 9 * 343,
+                    7 * -8 + -8 * 125 + 9 * -512,
+                    7 * 27 + -8 * -216 + 9 * 729,
+                ]
+            ])
+            .unwrap()
+    )
+}
+
+#[test]
+#[should_panic]
+fn mul_matrix_invalid() {
+    let m = Matrix::<u32>::new(&[&[0, 1], &[2, 3]]).unwrap();
+    let n = Matrix::<u32>::new(&[&[0, 1], &[4, 8], &[16, 25]]).unwrap();
+
+    let _ = m * n;
+}
+
+#[test]
+fn dot_matrix() {
+    let m = Matrix::<i64>::new(&[&[1, -2, 3], &[-4, 5, -6], &[7, -8, 9]]).unwrap();
+    let n = Matrix::<i64>::new(&[&[1, -8, 27], &[-64, 125, -216], &[343, -512, 729]]).unwrap();
+
+    assert!(match m.dot(&n) {
+        Ok(prod) =>
+            prod == Matrix::new(&[
+                &[1 + 128 + 1029, -8 + -250 + -1536, 27 + 432 + 2187],
+                &[
+                    -4 + 5 * -64 + -6 * 343,
+                    32 + 5 * 125 + 6 * 512,
+                    -4 * 27 + 5 * -216 + -6 * 729
+                ],
+                &[
+                    7 + -8 * -64 + 9 * 343,
+                    7 * -8 + -8 * 125 + 9 * -512,
+                    7 * 27 + -8 * -216 + 9 * 729,
+                ]
+            ])
+            .unwrap(),
+        Err(_) => false,
+    })
+}
+
+#[test]
+fn dot_matrix_invalid() {
+    let m = Matrix::<u32>::new(&[&[0, 1], &[2, 3]]).unwrap();
+    let n = Matrix::<u32>::new(&[&[0, 1], &[4, 8], &[16, 25]]).unwrap();
+
+    assert!(match m.dot(&n) {
+        Ok(_) => false,
+        Err(_) => true,
+    })
+}

@@ -211,3 +211,91 @@ macro_rules! impl_dot_with_vertex {
 }
 
 impl_dot_with_vertex! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+
+macro_rules! impl_dot_matrix {
+    ($($t:ty)*) => ($(
+        impl std::ops::Mul<super::Matrix<$t>> for super::Matrix<$t> {
+            type Output = Self;
+
+            fn mul(self, other: Self::Output) -> Self::Output {
+                use super::Matrix;
+
+                let m_size = self.size();
+                let n_size = other.size();
+                if m_size.0 != n_size.1 {
+                    panic!(
+                        "Width of matrix {:?} and height of matrix {:?} must match while computing product of two matrices",
+                        self,
+                        other
+                    );
+                }
+
+                let self_vec = self.to_vec();
+                let other_vec = other.to_vec();
+                let rv_vec: Vec<Vec<$t>> = (0..m_size.1)
+                    .into_iter()
+                    .map(|j| {
+                        (0..n_size.0)
+                            .into_iter()
+                            .map(|i| {
+                                (0..m_size.0)
+                                .into_iter()
+                                .map(|idx| self_vec[j][idx] * other_vec[idx][i])
+                                .sum()
+                            })
+                            .collect()
+                    })
+                    .collect();
+                let rv: Vec<&[$t]> = rv_vec
+                    .iter()
+                    .map(|rv_j| rv_j.as_slice())
+                    .collect();
+
+                Matrix::<$t>::new(rv.as_slice()).unwrap()
+            }
+        }
+
+        impl crate::linear::Dot<super::Matrix<$t>> for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<super::Matrix<$t>>;
+
+            fn dot(&self, other: &Self) -> Self::Output {
+                use super::Matrix;
+                use crate::error::SlalError;
+
+                let self_size = self.size();
+                let other_size = other.size();
+                if self_size.0 != other_size.1 {
+                    return Err(SlalError::UnmatchingMatrixSize(
+                            format!("{:?}", *self),
+                            format!("{:?}", *other),
+                    ))
+                }
+
+                let self_vec = self.to_vec();
+                let other_vec = other.to_vec();
+                let rv_vec: Vec<Vec<$t>> = (0..self_size.1)
+                    .into_iter()
+                    .map(|j| {
+                        (0..other_size.0)
+                            .into_iter()
+                            .map(|i| {
+                                (0..self_size.0)
+                                .into_iter()
+                                .map(|idx| self_vec[j][idx] * other_vec[idx][i])
+                                .sum()
+                            })
+                            .collect()
+                    })
+                    .collect();
+                let rv: Vec<&[$t]> = rv_vec
+                    .iter()
+                    .map(|rv_j| rv_j.as_slice())
+                    .collect();
+
+                Matrix::<$t>::new(rv.as_slice())
+            }
+        }
+    )*)
+}
+
+impl_dot_matrix! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }

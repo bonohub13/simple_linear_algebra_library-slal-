@@ -14,6 +14,8 @@ pub enum SlalError {
     VertexLengthAndMatrixHeightNotMatch(String, String, String),
     #[error("{0}")]
     VertexStateError(String),
+    #[error("Size of two matrices {0} and {1} does not match")]
+    UnmatchingMatrixSize(String, String),
 }
 
 pub type SlalErr<V> = Result<V, SlalError>;

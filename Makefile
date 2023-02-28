@@ -17,6 +17,9 @@ clean:
 fmt:
 	$(CC) fmt
 
+update:
+	$(CC) update
+
 build: fmt clean
 	mkdir -p bin
 	$(CC) build
@@ -35,7 +38,7 @@ rebuild-linux-image:
 	docker build . -t ${DOCKER_IMAGE_NAME}/linux -f docker/Dockerfile.linux --no-cache
 	rm docker/build.tar
 
-docker-build: fmt clean
+docker-build: fmt update clean
 	mkdir -p bin
 	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux
 	cp ./target/debug/${BIN} bin
