@@ -117,6 +117,24 @@ where
     }
 
     /**
+    Checks if matrix is a square matrix
+
+    # Example
+    ```
+    use slal::matrix::Matrix;
+
+    let m = Matrix::new(&[&[1, 2], &[0, 3]]).unwrap();
+
+    if m.is_square_matrix() {
+        println!("{:?} is a square matrix!", m);
+    }
+    ```
+     */
+    pub fn is_square_matrix(&self) -> bool {
+        self.size[0] == self.size[1] && !self.is_empty()
+    }
+
+    /**
     Resets matrix with new matrix.
 
     # Examples
@@ -300,6 +318,13 @@ mod test {
     #[test]
     fn is_empty() {
         assert!(Matrix::<i8>::empty().is_empty());
+    }
+
+    #[test]
+    fn is_square_matrix() {
+        assert!(Matrix::<u8>::new(&[&[1, 2], &[0, 3]])
+            .unwrap()
+            .is_square_matrix())
     }
 
     #[test]

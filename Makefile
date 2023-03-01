@@ -23,7 +23,6 @@ update:
 build: fmt clean
 	mkdir -p bin
 	$(CC) build
-	cp ./target/debug/${BIN} bin
 
 run:
 	./bin/${BIN}
@@ -41,7 +40,6 @@ rebuild-linux-image:
 docker-build: fmt update clean
 	mkdir -p bin
 	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux
-	cp ./target/debug/${BIN} bin
 
 docker-test: fmt clean
 	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "cargo test"

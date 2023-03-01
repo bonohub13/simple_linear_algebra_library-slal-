@@ -1,4 +1,5 @@
 use super::Vertex;
+use crate::linear::{Cross, Dot, Magnitude};
 use crate::matrix::Matrix;
 
 #[test]
@@ -68,4 +69,72 @@ fn mul_non_matching_size() {
     v1.t();
 
     let _ = v2 * v1;
+}
+
+#[test]
+fn dot_scala() {
+    let v = Vertex::<u64>::new(&[1, 2, 3]);
+    let scala: u64 = 3;
+
+    assert!(scala.dot(&v) == Vertex::new(&[3, 6, 9]))
+}
+
+#[test]
+fn dot_with_scala() {
+    let v = Vertex::<i128>::new(&[1, 2, 3]);
+    let scala: i128 = -4;
+
+    assert!(v.dot(&scala) == Vertex::new(&[-4, -8, -12]))
+}
+
+#[test]
+fn dot_vertex() {
+    let v = Vertex::<u128>::new(&[1, 2, 3]);
+    let w = Vertex::<u128>::new(&[1, 4, 9]);
+
+    assert!(v.dot(&w) == Ok(1 + 8 + 27))
+}
+
+#[test]
+fn dot_vertex_invalid() {
+    let v = Vertex::<isize>::new(&[1, 2, 3]);
+    let w = Vertex::<isize>::new(&[1, 4, 27, 64]);
+
+    assert!(match v.dot(&w) {
+        Ok(_) => false,
+        Err(_) => true,
+    })
+}
+
+#[test]
+fn cross() {
+    let v = Vertex::<f32>::new(&[1.0, 2.0, 3.0]);
+    let w = Vertex::<f32>::new(&[0.1, 0.8, 2.7]);
+
+    assert!(
+        v.cross(&w)
+            == Ok(Vertex::new(&[
+                2.0 * 2.7 - 3.0 * 0.8,
+                3.0 * 0.1 - 1.0 * 2.7,
+                1.0 * 0.8 - 2.0 * 0.1
+            ]))
+    )
+}
+
+#[test]
+fn cross_invalid() {
+    let v = Vertex::<f64>::new(&[0.0, 1.0, 2.0, 3.0]);
+    let w = Vertex::<f64>::new(&[0.1, 0.8, 2.7]);
+
+    assert!(match v.cross(&w) {
+        Ok(_) => false,
+        Err(_) => true,
+    })
+}
+
+#[test]
+fn magnitude() {
+    let v = Vertex::<usize>::new(&[0, 1, 2, 3]);
+
+    assert!(v.magnitude() == f64::from(1.0 + 4.0 + 9.0).sqrt())
 }
