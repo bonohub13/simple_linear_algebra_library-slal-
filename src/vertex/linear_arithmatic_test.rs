@@ -1,5 +1,5 @@
 use super::Vertex;
-use crate::linear::{Cross, Dot, Magnitude};
+use crate::linear::{Cross, Dot};
 use crate::matrix::Matrix;
 
 #[test]
@@ -42,8 +42,8 @@ fn mul_trasposed() {
 #[test]
 #[should_panic]
 fn mul_none_transposed() {
-    let v1 = Vertex::new(&[1, 2, 3]);
-    let v2 = Vertex::new(&[4, 5, 6]);
+    let v1: Vertex<i32> = Vertex::new(&[1, 2, 3]);
+    let v2: Vertex<i32> = Vertex::new(&[4, 5, 6]);
 
     let _ = v1 * v2;
 }
@@ -68,7 +68,7 @@ fn mul_non_matching_size() {
 
     v1.t();
 
-    let _ = v2 * v1;
+    let _ = v1 * v2;
 }
 
 #[test]
@@ -130,11 +130,4 @@ fn cross_invalid() {
         Ok(_) => false,
         Err(_) => true,
     })
-}
-
-#[test]
-fn magnitude() {
-    let v = Vertex::<usize>::new(&[0, 1, 2, 3]);
-
-    assert!(v.magnitude() == f64::from(1.0 + 4.0 + 9.0).sqrt())
 }

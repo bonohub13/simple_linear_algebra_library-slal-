@@ -82,27 +82,20 @@ macro_rules! impl_mul_vertex {
             type Output = crate::matrix::Matrix<$t>;
 
             fn mul(self, other: super::Vertex<$t>) -> Self::Output {
-                use crate::error::SlalError;
                 use crate::matrix::Matrix;
                 use std::iter::zip;
 
                 if self.len() != other.len() {
-                    panic!(
-                        "{}",
-                        SlalError::UnmatchingVertexLength(
-                            format!("{:?}", self),
-                            format!("{:?}", other)
-                        )
-                    );
+                    panic!("Length of two vectors must match.");
                 } else if self.is_transposed() == other.is_transposed() {
-                    panic!("{}", SlalError::BothVerticesTransposed(
-                            format!("{:?}", self),
-                            format!("{:?}", other),
-                            String::from("while calculating product")
-                    ));
+                    if self.is_transposed() {
+                        panic!("Cannot multiply vectors that are both vertical.");
+                    } else {
+                        panic!("Cannot multiply vectors that are both horizontal.")
+                    }
                 }
 
-                if self.is_transposed() && !other.is_transposed() {
+                if self.is_transposed() {
                     let rv_vec: Vec<Vec<$t>> = self
                         .to_vec()
                         .iter()
@@ -117,13 +110,19 @@ macro_rules! impl_mul_vertex {
                         .map(|rv_i| rv_i.as_slice())
                         .collect();
 
-                    Matrix::<$t>::new(rv.as_slice()).unwrap()
+                    match Matrix::<$t>::new(rv.as_slice()) {
+                        Ok(matrix) => return matrix,
+                        Err(e) => panic!("{}", e),
+                    };
                 } else {
                     let rv: $t = zip(self.to_vec(), other.to_vec())
                         .map(|(v_i, w_i)| v_i * w_i)
                         .sum();
 
-                    Matrix::<$t>::new(&[&[rv]]).unwrap()
+                    match Matrix::<$t>::new(&[&[rv]]) {
+                        Ok(matrix) => return matrix,
+                        Err(e) => panic!("{}", e),
+                    };
                 }
             }
         }
@@ -183,21 +182,3 @@ macro_rules! impl_mul_vertex {
 }
 
 impl_mul_vertex! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
-
-macro_rules! impl_magnitude_vertex {
-    ($($t:ty)*) => ($(
-        impl crate::linear::Magnitude for super::Vertex<$t> {
-            type Output = f64;
-
-            fn magnitude(&self) -> Self::Output {
-                self.to_vec()
-                    .iter()
-                    .map(|v_i| (*v_i * *v_i) as f64)
-                    .sum::<f64>()
-                    .sqrt()
-            }
-        }
-    )*)
-}
-
-impl_magnitude_vertex! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }

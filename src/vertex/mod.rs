@@ -1,15 +1,19 @@
 mod convert;
-mod linear;
+mod linear_arithmatic;
+mod linear_utils;
 mod math;
 
 #[cfg(test)]
-mod linear_test;
+mod linear_arithmatic_test;
+#[cfg(test)]
+mod linear_utils_test;
 #[cfg(test)]
 mod math_test;
 
 pub use crate::linear::Dot;
 pub use convert::*;
-pub use linear::*;
+pub use linear_arithmatic::*;
+pub use linear_utils::*;
 pub use math::*;
 
 #[derive(Debug, PartialEq, Clone)]
