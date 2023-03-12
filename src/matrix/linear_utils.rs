@@ -1,7 +1,7 @@
-macro_rules! impl_triangular_matrix {
+macro_rules! impl_triangle_matrix {
     ($($t:ty)*) => ($(
-        impl crate::linear::TriangularMatrix for super::Matrix<$t> {
-            fn is_upper_triangular(&self) -> bool {
+        impl crate::linear::TriangleMatrix for super::Matrix<$t> {
+            fn is_upper_triangle(&self) -> bool {
                 let size = self.size();
 
                 if size.0 != size.1 {
@@ -19,7 +19,7 @@ macro_rules! impl_triangular_matrix {
 
                 true
             }
-            fn is_lower_triangular(&self) -> bool {
+            fn is_lower_triangle(&self) -> bool {
                 let size = self.size();
 
                 if size.0 != size.1 {
@@ -41,7 +41,7 @@ macro_rules! impl_triangular_matrix {
     )*)
 }
 
-impl_triangular_matrix! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+impl_triangle_matrix! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
 
 macro_rules! impl_diagonal_matrix {
     ($($t:ty)*) => ($(
@@ -98,7 +98,7 @@ macro_rules! impl_diagonal_matrix {
 
 impl_diagonal_matrix! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
 
-// Add a method to compute triangular matrix of a matrix with size (2, 2) and above
+// Add a method to compute triangle matrix of a matrix with size (2, 2) and above
 // Necessary for computing determinant of matrix with size (4, 4) and above
 macro_rules! impl_determinant {
     ($($t:ty)*) => ($(
@@ -107,7 +107,7 @@ macro_rules! impl_determinant {
 
             fn det(&self) -> crate::error::SlalErr<Self::Output> {
                 use crate::error::SlalError;
-                use crate::linear::TriangularMatrix;
+                use crate::linear::TriangleMatrix;
 
                 let size = self.size();
 
@@ -120,7 +120,7 @@ macro_rules! impl_determinant {
                 }
 
                 let m_vec = self.to_vec();
-                if self.is_upper_triangular() || self.is_lower_triangular() {
+                if self.is_upper_triangle() || self.is_lower_triangle() {
                     let mut rv: $t = 1 as $t;
 
                     (0..size.0).for_each(|idx| rv *= m_vec[idx][idx]);
@@ -147,8 +147,8 @@ macro_rules! impl_determinant {
                     }
                     _ => {
                         /* TODO:
-                            1. Add a method to compute triangular matrix
-                            2. Compute the determinant based on the triangular matrix
+                            1. Add a method to compute triangle matrix
+                            2. Compute the determinant based on the triangle matrix
                         */
                         todo!()
                     },

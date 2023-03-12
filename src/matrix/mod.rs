@@ -9,7 +9,7 @@ mod linear_utils_test;
 #[cfg(test)]
 mod math_test;
 
-pub use crate::linear::{Cross, Determinant, DiagonalMatrix, Dot, Magnitude, TriangularMatrix};
+pub use crate::linear::{Cross, Determinant, DiagonalMatrix, Dot, Magnitude, TriangleMatrix};
 pub use linear_arithmatic::*;
 pub use linear_utils::*;
 pub use math::*;

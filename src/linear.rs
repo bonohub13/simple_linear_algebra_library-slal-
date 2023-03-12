@@ -7,6 +7,22 @@ where
 {
     type Output;
 
+    /**
+    Calculates dot product of vector/matrix
+
+    # Example
+    ```
+    use slal::linear::Dot;
+    use slal::vertex::Vertex;
+
+    let v = Vertex::new(&[1, 2, 3]);
+    let mut w = Vertex::new(&[1, 4, 9]);
+
+    w.t();
+
+    assert!(v.dot(&w) == Ok(36));
+    ```
+     */
     fn dot(&self, other: &T) -> Self::Output;
 }
 
@@ -28,15 +44,59 @@ where
 pub trait Magnitude {
     type Output;
 
+    /**
+    Computes magnitude of vectors;
+
+    # Example
+    ```
+    use slal::linear::Magnitude;
+    use slal::vertex::Vertex;
+
+    let v = Vertex::new(&[1, 2, 3]);
+
+    assert!(v.magnitude() == (14.0 as f64).sqrt());
+    ```
+    */
     fn magnitude(&self) -> Self::Output;
 }
 
 /**
-    Checks if matrix is triangular matrix
+    Checks if matrix is triangle matrix
 */
-pub trait TriangularMatrix {
-    fn is_upper_triangular(&self) -> bool;
-    fn is_lower_triangular(&self) -> bool;
+pub trait TriangleMatrix {
+    type Output;
+
+    /**
+    Checks if matrix is lower triangle matrix
+
+    # Example
+    ```
+    use slal::linear::TriangleMatrix;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::new(&[&[1, 2, 3], &[0, 4, 5], &[0, 0, 6]]).unwrap();
+
+    assert!(m.is_lower_triangle())
+    ```
+     */
+    fn is_lower_triangle(&self) -> bool;
+
+    /**
+    Checks if matrix is lower triangle matrix
+
+    # Example
+    ```
+    use slal::linear::TriangleMatrix;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::new(&[&[1, 0, 0], &[2, 3, 0], &[4, 5, 6]]).unwrap();
+
+    assert!(m.is_lower_triangle())
+    ```
+     */
+    fn is_upper_triangle(&self) -> bool;
+    fn lower_triangle(&self) -> Self::Output;
+    fn upper_triangle(&self) -> Self::Output;
 }
 
 pub trait DiagonalMatrix<T> {
