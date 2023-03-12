@@ -9,3 +9,9 @@
         | 1 2 0 6 |
         | 0 2 3 7 |
         ```
+
+## Features that will be added
+1. Vectors, Matrices of complex numbers
+    - Computation of complex numbers can done with vectors
+        - (1 + j) * (2 - j) &rarr; 2 + (-j + 2j) - (-1 * 1)
+        - [T; 2] &larr; array with length 2 of data type T
