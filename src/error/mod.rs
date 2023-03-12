@@ -16,6 +16,10 @@ pub enum SlalError {
     VertexStateError(String),
     #[error("Size of two matrices {0} and {1} does not match")]
     UnmatchingMatrixSize(String, String),
+    #[error("Matrix {0} is not a square matrix ({1}, {2}).")]
+    NotSquareMatrix(String, String, String),
+    #[error("Empty Matrix: {0}")]
+    EmptyMatrix(String),
 }
 
 pub type SlalErr<V> = Result<V, SlalError>;

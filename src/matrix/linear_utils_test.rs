@@ -1,5 +1,5 @@
 use super::Matrix;
-use crate::linear::{DiagonalMatrix, IsTriangularMatrix};
+use crate::linear::{DiagonalMatrix, TriangularMatrix};
 
 #[test]
 fn is_upper_triangular() {

@@ -43,3 +43,6 @@ docker-build: fmt update clean
 
 docker-test: fmt clean
 	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "cargo test"
+
+docker-test-offline: fmt clean
+	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "cargo test --offline"

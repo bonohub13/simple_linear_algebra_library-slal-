@@ -34,7 +34,7 @@ pub trait Magnitude {
 /**
     Checks if matrix is triangular matrix
 */
-pub trait IsTriangularMatrix {
+pub trait TriangularMatrix {
     fn is_upper_triangular(&self) -> bool;
     fn is_lower_triangular(&self) -> bool;
 }
@@ -69,4 +69,23 @@ pub trait DiagonalMatrix<T> {
     ```
      */
     fn is_diagonal(&self) -> bool;
+}
+
+pub trait Determinant {
+    type Output;
+
+    /**
+    Calculates the determinant of a matrix with size (n, n)
+
+    # Example
+    ```
+    use slal::linear::Determinant;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::new(&[&[1, 2], &[3, 4]]).unwrap();
+
+    assert!(m.det() == Ok(-2));
+    ```
+     */
+    fn det(&self) -> crate::error::SlalErr<Self::Output>;
 }
