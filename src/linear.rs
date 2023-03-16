@@ -61,42 +61,42 @@ pub trait Magnitude {
 }
 
 /**
-    Checks if matrix is triangle matrix
+    Checks if matrix is triangular matrix
 */
-pub trait TriangleMatrix {
+pub trait TriangularMatrix {
     type Output;
 
     /**
-    Checks if matrix is lower triangle matrix
+    Checks if matrix is lower triangular matrix
 
     # Example
     ```
-    use slal::linear::TriangleMatrix;
+    use slal::linear::TriangularMatrix;
     use slal::matrix::Matrix;
 
     let m = Matrix::new(&[&[1, 2, 3], &[0, 4, 5], &[0, 0, 6]]).unwrap();
 
-    assert!(m.is_lower_triangle())
+    assert!(m.is_lower_triangular())
     ```
      */
-    fn is_lower_triangle(&self) -> bool;
+    fn is_lower_triangular(&self) -> bool;
 
     /**
-    Checks if matrix is lower triangle matrix
+    Checks if matrix is lower triangular matrix
 
     # Example
     ```
-    use slal::linear::TriangleMatrix;
+    use slal::linear::TriangularMatrix;
     use slal::matrix::Matrix;
 
     let m = Matrix::new(&[&[1, 0, 0], &[2, 3, 0], &[4, 5, 6]]).unwrap();
 
-    assert!(m.is_lower_triangle())
+    assert!(m.is_lower_triangular())
     ```
      */
-    fn is_upper_triangle(&self) -> bool;
-    fn lower_triangle(&self) -> Self::Output;
-    fn upper_triangle(&self) -> Self::Output;
+    fn is_upper_triangular(&self) -> bool;
+    fn lower_triangular(&self) -> Self::Output;
+    fn upper_triangular(&self) -> Self::Output;
 }
 
 pub trait DiagonalMatrix<T> {
@@ -131,7 +131,7 @@ pub trait DiagonalMatrix<T> {
     fn is_diagonal(&self) -> bool;
 }
 
-pub trait Determinant {
+pub trait Determinant<T> {
     type Output;
 
     /**
@@ -147,5 +147,5 @@ pub trait Determinant {
     assert!(m.det() == Ok(-2));
     ```
      */
-    fn det(&self) -> crate::error::SlalErr<Self::Output>;
+    fn det(&self) -> crate::error::SlalErr<Self::Output, T>;
 }

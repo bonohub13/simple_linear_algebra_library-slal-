@@ -128,7 +128,7 @@ macro_rules! impl_mul_vertex {
         }
 
         impl crate::linear::Dot<super::Vertex<$t>> for super::Vertex<$t> {
-            type Output = crate::error::SlalErr<$t>;
+            type Output = crate::error::SlalErr<$t, $t>;
 
             fn dot(&self, other: &Self) -> <Self as crate::linear::Dot<super::Vertex<$t>>>::Output {
                 use crate::error::SlalError;
@@ -150,7 +150,7 @@ macro_rules! impl_mul_vertex {
         }
 
         impl crate::linear::Cross<super::Vertex<$t>> for super::Vertex<$t> {
-            type Output = crate::error::SlalErr<super::Vertex<$t>>;
+            type Output = crate::error::SlalErr<super::Vertex<$t>, $t>;
 
             fn cross(&self, other: &Self) -> Self::Output {
                 use super::Vertex;

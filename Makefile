@@ -27,6 +27,12 @@ build: fmt clean
 run:
 	./bin/${BIN}
 
+test: fmt
+	$(CC) test
+
+test-offline: fmt
+	$(CC) test --offline
+
 build-linux-image:
 	tar cvf docker/build.tar ${SRC_DIR} ${CARGO_TOML} ${LIB_DIR}
 	docker build . -t ${DOCKER_IMAGE_NAME}/linux -f docker/Dockerfile.linux
@@ -42,7 +48,7 @@ docker-build: fmt update clean
 	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux
 
 docker-test: fmt clean
-	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "cargo test"
+	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "make test"
 
 docker-test-offline: fmt clean
-	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "cargo test --offline"
+	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "make test-offline"

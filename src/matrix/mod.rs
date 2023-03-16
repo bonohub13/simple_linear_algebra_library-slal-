@@ -1,3 +1,4 @@
+mod convert;
 mod linear_arithmatic;
 mod linear_utils;
 mod math;
@@ -9,7 +10,7 @@ mod linear_utils_test;
 #[cfg(test)]
 mod math_test;
 
-pub use crate::linear::{Cross, Determinant, DiagonalMatrix, Dot, Magnitude, TriangleMatrix};
+pub use crate::linear::{Cross, Determinant, DiagonalMatrix, Dot, Magnitude, TriangularMatrix};
 pub use linear_arithmatic::*;
 pub use linear_utils::*;
 pub use math::*;
@@ -46,7 +47,7 @@ where
     let m = Matrix::<f32>::new(&[&[1.0, 1.1], &[2.0, 2.1], &[3.0, 3.1]]).unwrap();
     ```
      */
-    pub fn new(matrix: &[&[T]]) -> crate::error::SlalErr<Self> {
+    pub fn new(matrix: &[&[T]]) -> crate::error::SlalErr<Self, T> {
         use crate::error::SlalError;
 
         match matrix.len() {
@@ -151,7 +152,7 @@ where
     m.set_matrix(&[&[0, 2, 4], &[3, 9, 27], &[25, 125, 625]]).unwrap();
     ```
      */
-    pub fn set_matrix(&mut self, matrix: &[&[T]]) -> crate::error::SlalErr<()> {
+    pub fn set_matrix(&mut self, matrix: &[&[T]]) -> crate::error::SlalErr<(), T> {
         use crate::error::SlalError;
 
         let mut past_size: usize = 0;

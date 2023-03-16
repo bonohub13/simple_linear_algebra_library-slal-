@@ -11,10 +11,10 @@
         ```
 
 ## Features that will be added
-1. Computation of triangle matrix from matrix
-    - upper triangle matrix can be done by the following:
+1. Computation of triangular matrix from matrix
+    - upper triangular matrix can be done by the following:
         1. Transpose the original matrix
-        2. Compute lower triangle matrix of transposed matrix
+        2. Compute lower triangular matrix of transposed matrix
         3. Revert the tranpose
 2. Vectors, Matrices of complex numbers
     - Computation of complex numbers can done with vectors

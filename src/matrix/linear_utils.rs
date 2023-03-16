@@ -1,25 +1,34 @@
-macro_rules! impl_triangle_matrix {
+fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matrix<f64>, f64> {
+    use crate::error::SlalError;
+
+    // Ignore anything below this value and treat it as 0.0
+    const DELTA: f64 = 1e-10;
+
+    // Assumes all matrices are square matrix
+    let m_vec = m.to_vec();
+    let size = m.size();
+
+    // Using Doolittle's method to compute upper triangular matrix
+
+    let u_1 = m_vec[1].as_slice();
+    let u_22 = m_vec[2][2] - (m_vec[1][2] * m_vec[2][1]) / m_vec[1][1];
+
+    if u_22 < DELTA {
+        return Err(SlalError::TriangularMatrixNotExist(*m));
+    }
+
+    let u_23 = m_vec[2][3] - (m_vec[1][3] * m_vec[2][1]) / m_vec[1][1];
+    let u_2: &[f64] = &[0.0, u_22, u_23];
+
+    todo!();
+}
+
+macro_rules! impl_triangular_matrix {
     ($($t:ty)*) => ($(
-        impl crate::linear::TriangleMatrix for super::Matrix<$t> {
-            fn is_upper_triangle(&self) -> bool {
-                let size = self.size();
+        impl crate::linear::TriangularMatrix for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<super::Matrix<$t>, $t>;
 
-                if size.0 != size.1 {
-                    return false;
-                }
-
-                let m_vec = self.to_vec();
-                for j in 0..size.1 {
-                    for i in (j+1)..size.0 {
-                        if m_vec[j][i] != 0 as $t {
-                            return false;
-                        }
-                    }
-                }
-
-                true
-            }
-            fn is_lower_triangle(&self) -> bool {
+            fn is_lower_triangular(&self) -> bool {
                 let size = self.size();
 
                 if size.0 != size.1 {
@@ -37,11 +46,56 @@ macro_rules! impl_triangle_matrix {
 
                 true
             }
+
+            fn is_upper_triangular(&self) -> bool {
+                let size = self.size();
+
+                if size.0 != size.1 {
+                    return false;
+                }
+
+                let m_vec = self.to_vec();
+                for j in 0..size.1 {
+                    for i in (j+1)..size.0 {
+                        if m_vec[j][i] != 0 as $t {
+                            return false;
+                        }
+                    }
+                }
+
+                true
+            }
+
+            fn lower_triangular(&self) -> Self::Output {
+                use crate::error::SlalError;
+                use std::any::TypeId;
+
+                let size = self.size();
+
+                if size.0 != size.1 {
+                    return Err(SlalError::NotSquareMatrix(
+                            format!("{:?}", *self),
+                            format!("{}", size.0),
+                            format!("{}", size.1),
+                    ));
+                }
+
+                if TypeId::of::<$t>() == TypeId::of::<f64>() {
+                }
+
+                let m: super::Matrix<f64> = super::Matrix::from(self.clone());
+
+                todo!()
+            }
+
+            fn upper_triangular(&self) -> Self::Output {
+                todo!()
+            }
         }
     )*)
 }
 
-impl_triangle_matrix! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+impl_triangular_matrix! { i8 u8 i16 u16 i32 u32 f32 f64 }
 
 macro_rules! impl_diagonal_matrix {
     ($($t:ty)*) => ($(
@@ -98,16 +152,16 @@ macro_rules! impl_diagonal_matrix {
 
 impl_diagonal_matrix! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
 
-// Add a method to compute triangle matrix of a matrix with size (2, 2) and above
+// Add a method to compute triangular matrix of a matrix with size (2, 2) and above
 // Necessary for computing determinant of matrix with size (4, 4) and above
 macro_rules! impl_determinant {
     ($($t:ty)*) => ($(
-        impl crate::linear::Determinant for super::Matrix<$t> {
+        impl crate::linear::Determinant<$t> for super::Matrix<$t> {
             type Output = $t;
 
-            fn det(&self) -> crate::error::SlalErr<Self::Output> {
+            fn det(&self) -> crate::error::SlalErr<Self::Output, $t> {
                 use crate::error::SlalError;
-                use crate::linear::TriangleMatrix;
+                use crate::linear::TriangularMatrix;
 
                 let size = self.size();
 
@@ -120,7 +174,7 @@ macro_rules! impl_determinant {
                 }
 
                 let m_vec = self.to_vec();
-                if self.is_upper_triangle() || self.is_lower_triangle() {
+                if self.is_upper_triangular() || self.is_lower_triangular() {
                     let mut rv: $t = 1 as $t;
 
                     (0..size.0).for_each(|idx| rv *= m_vec[idx][idx]);
@@ -147,8 +201,8 @@ macro_rules! impl_determinant {
                     }
                     _ => {
                         /* TODO:
-                            1. Add a method to compute triangle matrix
-                            2. Compute the determinant based on the triangle matrix
+                            1. Add a method to compute triangular matrix
+                            2. Compute the determinant based on the triangular matrix
                         */
                         todo!()
                     },
@@ -158,4 +212,4 @@ macro_rules! impl_determinant {
     )*)
 }
 
-impl_determinant! { i8 i16 i32 i64 i128 isize f32 f64 }
+impl_determinant! { i8 u8 i16 u16 i32 u32 f32 f64 }

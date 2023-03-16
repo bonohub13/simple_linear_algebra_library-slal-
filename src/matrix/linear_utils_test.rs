@@ -1,50 +1,50 @@
 use super::Matrix;
-use crate::linear::{DiagonalMatrix, TriangleMatrix};
+use crate::linear::{DiagonalMatrix, TriangularMatrix};
 
 #[test]
-fn is_upper_triangle() {
+fn is_upper_triangular() {
     let m =
         Matrix::<i8>::new(&[&[1, 0, 0, 0], &[2, 3, 0, 0], &[4, 5, 6, 0], &[7, 8, 9, 10]]).unwrap();
 
-    assert!(m.is_upper_triangle());
+    assert!(m.is_upper_triangular());
 }
 
 #[test]
-fn not_upper_triangle_size() {
+fn not_upper_triangular_size() {
     let m = Matrix::<u8>::new(&[&[1, 0, 0, 0], &[2, 3, 0, 0], &[4, 5, 6, 0]]).unwrap();
 
-    assert!(!m.is_upper_triangle());
+    assert!(!m.is_upper_triangular());
 }
 
 #[test]
-fn not_upper_triangle() {
+fn not_upper_triangular() {
     let m =
         Matrix::<i16>::new(&[&[1, 0, 0, 1], &[2, 3, 2, 0], &[4, 5, 6, 0], &[7, 8, 9, 10]]).unwrap();
 
-    assert!(!m.is_upper_triangle());
+    assert!(!m.is_upper_triangular());
 }
 
 #[test]
-fn is_lower_triangle() {
+fn is_lower_triangular() {
     let m =
         Matrix::<u16>::new(&[&[1, 2, 3, 4], &[0, 5, 6, 7], &[0, 0, 8, 9], &[0, 0, 0, 10]]).unwrap();
 
-    assert!(m.is_lower_triangle());
+    assert!(m.is_lower_triangular());
 }
 
 #[test]
-fn not_lower_triangle_size() {
+fn not_lower_triangular_size() {
     let m = Matrix::<u16>::new(&[&[1, 2, 3, 4], &[0, 5, 6, 7], &[0, 0, 8, 9]]).unwrap();
 
-    assert!(!m.is_lower_triangle());
+    assert!(!m.is_lower_triangular());
 }
 
 #[test]
-fn not_lower_triangle() {
+fn not_lower_triangular() {
     let m =
         Matrix::<u16>::new(&[&[1, 2, 3, 4], &[0, 5, 6, 7], &[0, 1, 8, 9], &[0, 2, 3, 10]]).unwrap();
 
-    assert!(!m.is_lower_triangle());
+    assert!(!m.is_lower_triangular());
 }
 
 #[test]

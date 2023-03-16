@@ -90,7 +90,7 @@ macro_rules! impl_dot_vertex {
         }
 
         impl crate::linear::Dot<super::Matrix<$t>> for crate::vertex::Vertex<$t> {
-            type Output = crate::error::SlalErr<Self>;
+            type Output = crate::error::SlalErr<Self, $t>;
 
             fn dot(&self, other: &super::Matrix<$t>) -> Self::Output {
                 use crate::error::SlalError;
@@ -168,7 +168,7 @@ macro_rules! impl_dot_with_vertex {
         }
 
         impl crate::linear::Dot<crate::vertex::Vertex<$t>> for super::Matrix<$t> {
-            type Output = crate::error::SlalErr<crate::vertex::Vertex<$t>>;
+            type Output = crate::error::SlalErr<crate::vertex::Vertex<$t>, $t>;
 
             fn dot(&self, other: &crate::vertex::Vertex<$t>) -> Self::Output {
                 use crate::vertex::Vertex;
@@ -256,7 +256,7 @@ macro_rules! impl_dot_matrix {
         }
 
         impl crate::linear::Dot<super::Matrix<$t>> for super::Matrix<$t> {
-            type Output = crate::error::SlalErr<super::Matrix<$t>>;
+            type Output = crate::error::SlalErr<super::Matrix<$t>, $t>;
 
             fn dot(&self, other: &Self) -> Self::Output {
                 use super::Matrix;

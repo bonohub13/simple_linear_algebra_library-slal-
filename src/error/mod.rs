@@ -1,5 +1,5 @@
 #[derive(thiserror::Error, Debug, PartialEq)]
-pub enum SlalError {
+pub enum SlalError<T> {
     #[error("Failed to initialize slal::matrix::Matrix: {0}")]
     MatrixInitializationError(String),
     #[error("Failed to update slal::matrix::Matrix: {0}")]
@@ -20,6 +20,8 @@ pub enum SlalError {
     NotSquareMatrix(String, String, String),
     #[error("Empty Matrix: {0}")]
     EmptyMatrix(String),
+    #[error("Cannot perform computation of triangular matrix for matrix {:?}.", 0)]
+    TriangularMatrixNotExist(crate::matrix::Matrix<T>),
 }
 
-pub type SlalErr<V> = Result<V, SlalError>;
+pub type SlalErr<V, T> = Result<V, SlalError<T>>;
