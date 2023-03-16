@@ -9,24 +9,79 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
     let size = m.size();
 
     // Using Doolittle's method to compute upper triangular matrix
+    let mut l: Vec<f64> = Vec::with_capacity(size.0 * size.1);
+    let mut u: Vec<f64> = Vec::with_capacity(size.0 * size.1);
 
-    let u_1 = m_vec[1].as_slice();
-    let u_22 = m_vec[2][2] - (m_vec[1][2] * m_vec[2][1]) / m_vec[1][1];
-
-    if u_22 < DELTA {
-        return Err(SlalError::TriangularMatrixNotExist(*m));
+    for j in 0..size.1 {
+        for i in 0..size.0 {
+            if i < j {
+                // lower triangular matrix
+                u[j * size.1 + i] = 0.;
+                l[j * size.1 + i] = if i == 0 {
+                    m_vec[j][0] / m_vec[0][0]
+                } else {
+                    (m_vec[j][i]
+                        - (0..(i - 1))
+                            .into_iter()
+                            .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + i])
+                            .sum::<f64>())
+                        / u[(j * size.1 - 1) + (i - 1)]
+                };
+                // Treat values smaller or equal to DELTA as 0.0
+                if l[j * size.1 + i] <= DELTA {
+                    l[j * size.1 + i] = 0.;
+                }
+            } else if i == j {
+                // for diagonal lines
+                l[j * size.1 + i] = 1.;
+                u[j * size.1 + i] = if j == 0 {
+                    m_vec[0][i]
+                } else {
+                    m_vec[j][i]
+                        - (0..i)
+                            .into_iter()
+                            .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + i])
+                            .sum::<f64>()
+                };
+                // If any value of diagonal line in upper triangular matrix is
+                // 0 (below or including DELTA), computation of triangular matrix
+                // is impossible
+                if u[j * size.1 + i] <= DELTA {
+                    return Err(SlalError::TriangularMatrixNotExist(m.clone()));
+                }
+            } else if i > j {
+                // upper triangular matrix
+                l[j * size.1 + i] = 0.;
+                u[j * size.1 + i] = if j == 0 {
+                    m_vec[0][i]
+                } else {
+                    m_vec[j][i]
+                        - (0..(i - 1))
+                            .into_iter()
+                            .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + i])
+                            .sum::<f64>()
+                };
+                // Treat values smaller or equal to DELTA as 0.0
+                if u[j * size.1 + i] <= DELTA {
+                    u[j * size.1 + i] = 0.;
+                }
+            }
+        }
     }
 
-    let u_23 = m_vec[2][3] - (m_vec[1][3] * m_vec[2][1]) / m_vec[1][1];
-    let u_2: &[f64] = &[0.0, u_22, u_23];
-
-    todo!();
+    Ok(super::Matrix::<f64> {
+        m: (0..size.1)
+            .into_iter()
+            .map(|j| (0..size.0).into_iter().map(|i| u[j * size.1 + i]).collect())
+            .collect(),
+        size: [size.0, size.1],
+    })
 }
 
 macro_rules! impl_triangular_matrix {
     ($($t:ty)*) => ($(
         impl crate::linear::TriangularMatrix for super::Matrix<$t> {
-            type Output = crate::error::SlalErr<super::Matrix<$t>, $t>;
+            type Output = crate::error::SlalErr<super::Matrix<f64>, f64>;
 
             fn is_lower_triangular(&self) -> bool {
                 let size = self.size();
@@ -67,8 +122,18 @@ macro_rules! impl_triangular_matrix {
             }
 
             fn lower_triangular(&self) -> Self::Output {
+                let mut l = match self.upper_triangular() {
+                    Ok(l_matrix) => l_matrix,
+                    Err(err) => return Err(err),
+                };
+
+                l.t();
+
+                Ok(l)
+            }
+
+            fn upper_triangular(&self) -> Self::Output {
                 use crate::error::SlalError;
-                use std::any::TypeId;
 
                 let size = self.size();
 
@@ -80,16 +145,9 @@ macro_rules! impl_triangular_matrix {
                     ));
                 }
 
-                if TypeId::of::<$t>() == TypeId::of::<f64>() {
-                }
-
                 let m: super::Matrix<f64> = super::Matrix::from(self.clone());
 
-                todo!()
-            }
-
-            fn upper_triangular(&self) -> Self::Output {
-                todo!()
+                upper_triangular(&m)
             }
         }
     )*)

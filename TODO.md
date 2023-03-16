@@ -20,3 +20,16 @@
     - Computation of complex numbers can done with vectors
         - (1 + j) * (2 - j) &rarr; 2 + (-j + 2j) - (-1 * 1)
         - [T; 2] &larr; array with length 2 of data type T
+
+## Tests todo
+1. Test triangular matrix computation
+    1. upper triangular
+    2. lower triangular
+
+## Changes
+1. Use single Vector to represent datas for Matrix
+    - Use input data (x, y reference slice) to get size \
+    (assume data size doesn't change)
+    - When converting to a vector with `to_vec`, convert it to 2D vector
+    - Better for performance, and easy to check for falty matrix by doing size \
+    checking. (check if data size is x * y)
