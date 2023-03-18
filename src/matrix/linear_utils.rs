@@ -28,7 +28,7 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
                         / u[(j * size.1 - 1) + (i - 1)]
                 });
                 // Treat values smaller or equal to DELTA as 0.0
-                if l[j * size.1 + i] <= DELTA {
+                if l[j * size.1 + i].abs() <= DELTA {
                     l[j * size.1 + i] = 0.;
                 }
             } else if i == j {
@@ -46,7 +46,7 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
                 // If any value of diagonal line in upper triangular matrix is
                 // 0 (below or including DELTA), computation of triangular matrix
                 // is impossible
-                if u[j * size.1 + i] <= DELTA {
+                if u[j * size.1 + i].abs() <= DELTA {
                     println!("{:?}", u);
 
                     return Err(SlalError::TriangularMatrixNotExist(m.clone()));
@@ -64,7 +64,7 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
                             .sum::<f64>()
                 });
                 // Treat values smaller or equal to DELTA as 0.0
-                if u[j * size.1 + i] <= DELTA {
+                if u[j * size.1 + i].abs() <= DELTA {
                     u[j * size.1 + i] = 0.;
                 }
             }
@@ -225,6 +225,10 @@ macro_rules! impl_determinant {
 
                 let size = self.size();
 
+                if self.is_empty() {
+                    return Err(SlalError::EmptyMatrix(format!("{:?}", self.clone())));
+                }
+
                 if size.0 != size.1 {
                     return Err(SlalError::NotSquareMatrix(
                         format!("{:?}", *self),
@@ -248,16 +252,16 @@ macro_rules! impl_determinant {
                     ))),
                     (1, 1) => Ok(m_vec[0][0] as f64),
                     (2, 2) => {
-                        let rv = m_vec[0][0] * m_vec[1][1] - m_vec[1][0] * m_vec[0][1];
+                        let rv = (m_vec[0][0] * m_vec[1][1]) as f64 - (m_vec[1][0] * m_vec[0][1]) as f64;
 
-                        Ok(rv as f64)
+                        Ok(rv)
                     }
                     (3, 3) => {
-                        let m_1 = m_vec[0][0] * (m_vec[1][1] * m_vec[2][2] - m_vec[2][1] * m_vec[1][2]);
-                        let m_2 = m_vec[1][0] * (m_vec[0][1] * m_vec[2][2] - m_vec[2][1] * m_vec[0][2]);
-                        let m_3 = m_vec[2][0] * (m_vec[0][1] * m_vec[1][2] - m_vec[1][1] * m_vec[0][2]);
+                        let m_1 = m_vec[0][0] as f64 * ((m_vec[1][1] * m_vec[2][2]) as f64 - (m_vec[2][1] * m_vec[1][2]) as f64);
+                        let m_2 = m_vec[1][0] as f64 * ((m_vec[0][1] * m_vec[2][2]) as f64 - (m_vec[2][1] * m_vec[0][2]) as f64);
+                        let m_3 = m_vec[2][0] as f64 * ((m_vec[0][1] * m_vec[1][2]) as f64 - (m_vec[1][1] * m_vec[0][2]) as f64);
 
-                        Ok((m_1 - m_2 + m_3) as f64)
+                        Ok(m_1 - m_2 + m_3)
                     }
                     _ => {
                         let u = match self.upper_triangular() {
