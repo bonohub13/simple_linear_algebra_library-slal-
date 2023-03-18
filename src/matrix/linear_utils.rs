@@ -16,8 +16,8 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
         for i in 0..size.0 {
             if i < j {
                 // lower triangular matrix
-                u[j * size.1 + i] = 0.;
-                l[j * size.1 + i] = if i == 0 {
+                u.push(0.);
+                l.push(if i == 0 {
                     m_vec[j][0] / m_vec[0][0]
                 } else {
                     (m_vec[j][i]
@@ -26,33 +26,15 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
                             .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + i])
                             .sum::<f64>())
                         / u[(j * size.1 - 1) + (i - 1)]
-                };
+                });
                 // Treat values smaller or equal to DELTA as 0.0
                 if l[j * size.1 + i] <= DELTA {
                     l[j * size.1 + i] = 0.;
                 }
             } else if i == j {
                 // for diagonal lines
-                l[j * size.1 + i] = 1.;
-                u[j * size.1 + i] = if j == 0 {
-                    m_vec[0][i]
-                } else {
-                    m_vec[j][i]
-                        - (0..i)
-                            .into_iter()
-                            .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + i])
-                            .sum::<f64>()
-                };
-                // If any value of diagonal line in upper triangular matrix is
-                // 0 (below or including DELTA), computation of triangular matrix
-                // is impossible
-                if u[j * size.1 + i] <= DELTA {
-                    return Err(SlalError::TriangularMatrixNotExist(m.clone()));
-                }
-            } else if i > j {
-                // upper triangular matrix
-                l[j * size.1 + i] = 0.;
-                u[j * size.1 + i] = if j == 0 {
+                l.push(1.);
+                u.push(if j == 0 {
                     m_vec[0][i]
                 } else {
                     m_vec[j][i]
@@ -60,7 +42,27 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
                             .into_iter()
                             .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + i])
                             .sum::<f64>()
-                };
+                });
+                // If any value of diagonal line in upper triangular matrix is
+                // 0 (below or including DELTA), computation of triangular matrix
+                // is impossible
+                if u[j * size.1 + i] <= DELTA {
+                    println!("{:?}", u);
+
+                    return Err(SlalError::TriangularMatrixNotExist(m.clone()));
+                }
+            } else if i > j {
+                // upper triangular matrix
+                l.push(0.);
+                u.push(if j == 0 {
+                    m_vec[0][i]
+                } else {
+                    m_vec[j][i]
+                        - (0..(i - 1))
+                            .into_iter()
+                            .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + j])
+                            .sum::<f64>()
+                });
                 // Treat values smaller or equal to DELTA as 0.0
                 if u[j * size.1 + i] <= DELTA {
                     u[j * size.1 + i] = 0.;
@@ -91,8 +93,8 @@ macro_rules! impl_triangular_matrix {
                 }
 
                 let m_vec = self.to_vec();
-                for i in 0..size.0 {
-                    for j in (i+1)..size.1 {
+                for j in 0..size.1 {
+                    for i in (j+1)..size.0 {
                         if m_vec[j][i] != 0 as $t {
                             return false;
                         }
@@ -111,7 +113,7 @@ macro_rules! impl_triangular_matrix {
 
                 let m_vec = self.to_vec();
                 for j in 0..size.1 {
-                    for i in (j+1)..size.0 {
+                    for i in 0..j {
                         if m_vec[j][i] != 0 as $t {
                             return false;
                         }

@@ -74,7 +74,7 @@ pub trait TriangularMatrix {
     use slal::linear::TriangularMatrix;
     use slal::matrix::Matrix;
 
-    let m = Matrix::new(&[&[1, 2, 3], &[0, 4, 5], &[0, 0, 6]]).unwrap();
+    let m = Matrix::new(&[&[1, 0, 0], &[2, 3, 0], &[4, 5, 6]]).unwrap();
 
     assert!(m.is_lower_triangular())
     ```
@@ -95,8 +95,38 @@ pub trait TriangularMatrix {
     ```
      */
     fn is_upper_triangular(&self) -> bool;
-    fn lower_triangular(&self) -> Self::Output;
+
+    /**
+    Computes upper triangular matrix from square matrix
+
+    # Example
+    ```
+    use slal::linear::TriangularMatrix;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::<i32>::new(&[&[1, 0, 0], &[2, 3, 0], &[4, 5, 6]]).unwrap();
+    let u: Matrix<f64> = m.upper_triangular().unwrap();
+
+    assert!(u.is_upper_triangular())
+    ```
+     */
     fn upper_triangular(&self) -> Self::Output;
+
+    /**
+    Computes lower triangular matrix from matrix
+
+    # Example
+    ```
+    use slal::linear::TriangularMatrix;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::<u32>::new(&[&[1, 0, 0], &[2, 3, 0], &[4, 5, 6]]).unwrap();
+    let l: Matrix<f64> = m.lower_triangular().unwrap();
+
+    assert!(l.is_lower_triangular())
+    ```
+     */
+    fn lower_triangular(&self) -> Self::Output;
 }
 
 pub trait DiagonalMatrix<T> {
@@ -144,7 +174,7 @@ pub trait Determinant<T> {
 
     let m = Matrix::new(&[&[1, 2], &[3, 4]]).unwrap();
 
-    assert!(m.det() == Ok(-2));
+    assert!(m.det() == Ok(-2.0));
     ```
      */
     fn det(&self) -> crate::error::SlalErr<Self::Output, T>;
