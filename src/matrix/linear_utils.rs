@@ -215,7 +215,7 @@ impl_diagonal_matrix! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 
 macro_rules! impl_determinant {
     ($($t:ty)*) => ($(
         impl crate::linear::Determinant<$t> for super::Matrix<$t> {
-            type Output = $t;
+            type Output = f64;
 
             fn det(&self) -> crate::error::SlalErr<Self::Output, $t> {
                 use crate::error::SlalError;
@@ -237,32 +237,40 @@ macro_rules! impl_determinant {
 
                     (0..size.0).for_each(|idx| rv *= m_vec[idx][idx]);
 
-                    return Ok(rv)
+                    return Ok(rv as f64)
                 }
 
                 match size {
                     (0, 0) => Err(SlalError::EmptyMatrix(String::from(
                         "Cannot caluculate determinant for empty matrix"
                     ))),
-                    (1, 1) => Ok(m_vec[0][0]),
+                    (1, 1) => Ok(m_vec[0][0] as f64),
                     (2, 2) => {
                         let rv = m_vec[0][0] * m_vec[1][1] - m_vec[1][0] * m_vec[0][1];
 
-                        Ok(rv)
+                        Ok(rv as f64)
                     }
                     (3, 3) => {
                         let m_1 = m_vec[0][0] * (m_vec[1][1] * m_vec[2][2] - m_vec[2][1] * m_vec[1][2]);
                         let m_2 = m_vec[1][0] * (m_vec[0][1] * m_vec[2][2] - m_vec[2][1] * m_vec[0][2]);
                         let m_3 = m_vec[2][0] * (m_vec[0][1] * m_vec[1][2] - m_vec[1][1] * m_vec[0][2]);
 
-                        Ok(m_1 - m_2 + m_3)
+                        Ok((m_1 - m_2 + m_3) as f64)
                     }
                     _ => {
-                        /* TODO:
-                            1. Add a method to compute triangular matrix
-                            2. Compute the determinant based on the triangular matrix
-                        */
-                        todo!()
+                        let u = match self.upper_triangular() {
+                            Ok(m) => m,
+                            Err(_) => return Err(SlalError::TriangularMatrixNotExist(
+                                self.clone()
+                            )),
+                        };
+                        let mut det = 1.;
+                        (0..size.1)
+                            .for_each(|ij| {
+                                det *= u.m[ij][ij];
+                            });
+
+                        Ok(det)
                     },
                 }
             }

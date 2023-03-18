@@ -1,3 +1,4 @@
+use thiserror;
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum SlalError<T> {
     #[error("Failed to initialize slal::matrix::Matrix: {0}")]
