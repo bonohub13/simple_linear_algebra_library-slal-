@@ -1,5 +1,5 @@
 use super::Matrix;
-use crate::linear::{DiagonalMatrix, TriangularMatrix};
+use crate::linear::{Determinant, DiagonalMatrix, TriangularMatrix};
 
 #[test]
 fn is_upper_triangular() {
@@ -188,4 +188,90 @@ fn upper_triangular_noncomputable() {
         Ok(_) => assert!(false),
         Err(_) => assert!(true),
     }
+}
+
+#[test]
+fn determinant_2d() {
+    let m = Matrix::new(&[&[1, 2], &[3, 4]]).unwrap();
+
+    match m.det() {
+        Ok(det) => assert!(det == -2.),
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn determinant_3d() {
+    let m = Matrix::<u32>::new(&[&[1, 2, 3], &[4, 5, 6], &[7, 8, 9]]).unwrap();
+
+    match m.det() {
+        Ok(det) => {
+            let excepted = ((45 - 48) - 4 * (18 - 24) + 7 * (12 - 15)) as f64;
+
+            assert!(det == excepted);
+        }
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn determinant_4d_and_above() {
+    let m = Matrix::<f32>::new(&[
+        &[1., 2., 3., 4.],
+        &[4., 5., 6., 7.],
+        &[7., 8., 9., 10.],
+        &[10., 11., 12., 13.],
+    ])
+    .unwrap();
+
+    let triangular = m.upper_triangular().unwrap();
+    let triangular_vec = triangular.to_vec();
+
+    match m.det() {
+        Ok(det) => {
+            let mut excepted = 1.;
+            let size = triangular.size().1;
+            (0..size).for_each(|i| excepted *= triangular_vec[i][i]);
+
+            assert!(det == excepted);
+        }
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn determinant_triangular() {
+    let m = Matrix::new(&[&[1., 2.], &[0., 2.]]).unwrap();
+
+    match m.det() {
+        Ok(det) => assert!(det == 2.),
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn determinant_1d() {
+    let m = Matrix::<i8>::new(&[&[9]]).unwrap();
+
+    match m.det() {
+        Ok(det) => assert!(det == 9.),
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn determinant_empty() {
+    let m = Matrix::<u8>::empty();
+
+    match m.det() {
+        Ok(_) => assert!(false),
+        Err(_) => assert!(true),
+    }
+}
+
+#[test]
+fn determinant_not_square() {
+    let m = Matrix::<i16>::new(&[&[1], &[2]]).unwrap();
+
+    assert!(m.det().is_err());
 }
