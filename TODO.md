@@ -22,9 +22,12 @@
         - [T; 2] &larr; array with length 2 of data type T
 
 ## Tests todo
-1. Test triangular matrix computation
-    1. upper triangular
-    2. lower triangular
+1. ~~Test triangular matrix computation~~ (2023/03/18)
+    1. ~~upper triangular~~
+    2. ~~lower triangular~~
+2. ~~Implement and test determinant of matrix~~ (2023/03/18)
+    1. ~~implementation~~
+    2. ~~test~~
 
 ## Changes
 1. Use single Vector to represent datas for Matrix
