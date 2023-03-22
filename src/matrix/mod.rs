@@ -2,6 +2,7 @@ mod convert;
 mod linear_arithmatic;
 mod linear_utils;
 mod math;
+mod utils;
 
 #[cfg(test)]
 mod linear_arithmatic_test;
@@ -9,6 +10,8 @@ mod linear_arithmatic_test;
 mod linear_utils_test;
 #[cfg(test)]
 mod math_test;
+#[cfg(test)]
+mod utils_test;
 
 pub use crate::linear::{Cross, Determinant, DiagonalMatrix, Dot, Magnitude, TriangularMatrix};
 pub use linear_arithmatic::*;
@@ -17,7 +20,7 @@ pub use math::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Matrix<T> {
-    m: Vec<Vec<T>>,
+    m: Vec<T>,
     size: [usize; 2],
 }
 
@@ -64,22 +67,22 @@ where
                 }
             }
         }
-        let mut m: Vec<Vec<T>> = vec![vec![]; matrix.len()];
-        let mut previous_horizontal_length: usize = 0;
+        let size = (matrix[0].len(), matrix.len());
+        let mut m: Vec<T> = Vec::with_capacity(size.0 * size.1);
+        let mut previous_horizontal_length: usize = size.0;
 
         for (idx, v) in matrix.into_iter().enumerate() {
-            if idx == 0 {
-                previous_horizontal_length = v.len();
-            } else if previous_horizontal_length != v.len() {
+            if idx > 0 && previous_horizontal_length != v.len() {
                 return Err(SlalError::MatrixInitializationError(String::from(
                     Self::DIFFERENT_HORIZONTAL_VECTOR_IN_MATRIX,
                 )));
             }
-            m[idx] = v.to_vec();
+
+            v.into_iter().for_each(|v_i| m.push(*v_i));
         }
 
         Ok(Self {
-            size: [previous_horizontal_length, m.len()],
+            size: [size.0, size.1],
             m,
         })
     }
@@ -118,7 +121,7 @@ where
     ```
      */
     pub fn is_empty(&self) -> bool {
-        self.size == [0, 0]
+        self.size == [0, 0] && self.m.is_empty()
     }
 
     /**
@@ -155,19 +158,18 @@ where
     pub fn set_matrix(&mut self, matrix: &[&[T]]) -> crate::error::SlalErr<(), T> {
         use crate::error::SlalError;
 
-        let mut past_size: usize = 0;
+        let size = [matrix[0].len(), matrix.len()];
+        let mut m: Vec<T> = Vec::with_capacity(size[0] * size[1]);
+        let mut past_size: usize = size[0];
         for (matrix_idx, vertex) in matrix.into_iter().enumerate() {
-            if matrix_idx == 0 {
-                past_size = vertex.len();
-            } else if past_size != vertex.len() {
+            if matrix_idx > 0 && past_size != vertex.len() {
                 return Err(SlalError::MatrixUpdateError(
                     Self::DIFFERENT_HORIZONTAL_VECTOR_IN_MATRIX_ON_UPDATE.to_string(),
                 ));
             }
-        }
 
-        let m: Vec<Vec<T>> = matrix.into_iter().map(|vector| vector.to_vec()).collect();
-        let size = [m[0].len(), m.len()];
+            vertex.iter().for_each(|v_i| m.push(*v_i));
+        }
 
         self.m = m;
         self.size = size;
@@ -209,10 +211,12 @@ where
     ```
      */
     pub fn t(&mut self) {
-        let mut m: Vec<Vec<T>> = vec![vec![]; self.size[0]];
-        for (idx, m_i) in m.iter_mut().enumerate() {
-            *m_i = self.m.iter().map(|v_i| v_i[idx]).collect();
-        }
+        let mut m: Vec<T> = Vec::with_capacity(self.size[0] * self.size[1]);
+        (0..self.size[0]).for_each(|i| {
+            (0..self.size[1]).for_each(|j| {
+                m.push(self.m[j * self.size[1] + i]);
+            })
+        });
 
         self.m = m;
         self.size = [self.size[1], self.size[0]];
@@ -232,7 +236,15 @@ where
     ```
      */
     pub fn to_vec(&self) -> Vec<Vec<T>> {
-        self.m.clone()
+        (0..self.size[1])
+            .into_iter()
+            .map(|j| {
+                (0..self.size[0])
+                    .into_iter()
+                    .map(|i| self.m[j * self.size[1] + i])
+                    .collect()
+            })
+            .collect()
     }
 
     /**
@@ -267,7 +279,7 @@ mod test {
         assert_eq!(
             m,
             Matrix {
-                m: vec![vec![1, 2], vec![3, 4], vec![5, 6]],
+                m: vec![1, 2, 3, 4, 5, 6],
                 size: [2, 3],
             }
         );
@@ -354,7 +366,7 @@ mod test {
         assert_eq!(
             m,
             Matrix::<i32> {
-                m: vec![vec![2, 3], vec![3, 4]],
+                m: vec![1, 2, 3, 4],
                 size: [2, 2]
             }
         );
@@ -381,14 +393,14 @@ mod test {
 
     #[test]
     fn transpose() {
-        let mut m = Matrix::new(&[&[1, 2, 3]]).unwrap();
+        let mut m = Matrix::new(&[&[1, 2, 3], &[1, 4, 9]]).unwrap();
         m.t();
 
         assert_eq!(
             m,
             Matrix::<i32> {
-                m: vec![vec![1], vec![2], vec![3]],
-                size: [1, 3],
+                m: vec![1, 1, 2, 4, 3, 9],
+                size: [2, 3],
             }
         );
     }
