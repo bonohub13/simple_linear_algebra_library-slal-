@@ -2,6 +2,7 @@ mod convert;
 mod linear_arithmatic;
 mod linear_utils;
 mod math;
+mod utils;
 
 #[cfg(test)]
 mod linear_arithmatic_test;

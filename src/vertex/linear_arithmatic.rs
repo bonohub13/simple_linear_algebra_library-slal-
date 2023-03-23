@@ -4,25 +4,22 @@ macro_rules! impl_mul_scala {
             type Output = Self;
 
             fn mul(self, other: $t) -> super::Vertex<$t> {
-                use super::Vertex;
-
-                let rv_vec: Vec<$t> = self
-                    .to_vec()
-                    .iter()
-                    .map(|v_i| *v_i * other)
+                let rv_vec: Vec<$t> = (0..self.len())
+                    .into_iter()
+                    .map(|i| self[i] * other)
                     .collect();
 
-                let rv = if self.is_transposed() {
-                    let mut rv = Vertex::<$t>::new(rv_vec.as_slice());
-
-                    rv.t();
-
-                    rv
+                if self.is_transposed() {
+                    Self::Output {
+                        v: rv_vec,
+                        vertical: true,
+                    }
                 } else {
-                    Vertex::<$t>::new(rv_vec.as_slice())
-                };
-
-                rv
+                    Self::Output {
+                        v: rv_vec,
+                        vertical: false,
+                    }
+                }
             }
         }
 
@@ -30,23 +27,7 @@ macro_rules! impl_mul_scala {
             type Output = super::Vertex<$t>;
 
             fn dot(&self, other: &$t) -> <Self as crate::linear::Dot<$t>>::Output {
-                use super::Vertex;
-
-                let rv_vec: Vec<$t> = self
-                    .to_vec()
-                    .iter()
-                    .map(|v_i| *v_i * other)
-                    .collect();
-
-                if self.is_transposed() {
-                    let mut rv = Vertex::<$t>::new(rv_vec.as_slice());
-
-                    rv.t();
-
-                    rv
-                } else {
-                    Vertex::<$t>::new(rv_vec.as_slice())
-                }
+                *self * *other
             }
         }
     )*)
@@ -96,11 +77,10 @@ macro_rules! impl_mul_vertex {
                 }
 
                 if self.is_transposed() {
-                    let rv_vec: Vec<Vec<$t>> = self
-                        .to_vec()
-                        .iter()
-                        .map(|v_i| {
-                            let rv_i = *v_i * other.clone();
+                    let rv_vec: Vec<Vec<$t>> = (0..self.len())
+                        .into_iter()
+                        .map(|i| {
+                            let rv_i = self[i] * other;
 
                             rv_i.to_vec()
                         })
@@ -115,7 +95,7 @@ macro_rules! impl_mul_vertex {
                         Err(e) => panic!("{}", e),
                     };
                 } else {
-                    let rv: $t = zip(self.to_vec(), other.to_vec())
+                    let rv: $t = zip(self.v, other.v)
                         .map(|(v_i, w_i)| v_i * w_i)
                         .sum();
 
@@ -140,8 +120,13 @@ macro_rules! impl_mul_vertex {
                         format!("{:?}", *other)
                     ));
                 }
+                if self.is_transposed() || !other.is_transposed() {
+                    return Err(SlalError::VertexStateError(format!(
+                        "{:?}", *self,
+                    )));
+                }
 
-                let rv: $t = zip(self.to_vec(), other.to_vec())
+                let rv: $t = zip(self.v, other.v)
                     .map(|(v_i, w_i)| v_i * w_i)
                     .sum();
 
@@ -165,13 +150,17 @@ macro_rules! impl_mul_vertex {
                     ))
                 }
 
-                let self_vec = self.to_vec();
-                let other_vec = other.to_vec();
+                if !self.is_transposed() || other.is_transposed() {
+                    return Err(SlalError::VertexStateError(format!(
+                        "{:?}", *self,
+                    )));
+                }
+
                 let rv: Vec<$t> = (0..self_len)
                     .into_iter()
                     .map(|idx| {
-                        self_vec[(idx + 1) % self_len] * other_vec[(idx + 2) % self_len]
-                        - self_vec[(idx + 2) % self_len] * other_vec[(idx + 1) % self_len]
+                        self[(idx + 1) % self_len] * other[(idx + 2) % self_len]
+                        - self[(idx + 2) % self_len] * other[(idx + 1) % self_len]
                     })
                     .collect();
 
