@@ -4,23 +4,15 @@ macro_rules! impl_dot_scala {
             type Output = super::Matrix<$t>;
 
             fn mul(self, other: Self::Output) -> Self::Output {
-                use super::Matrix;
-                use crate::vertex::Vertex;
-                use crate::linear::Dot;
-
-                let rv_vec: Vec<Vec<$t>> = other
-                    .to_vec()
-                    .iter()
-                    .map(|m_i| {
-                        Vertex::<$t>::new(m_i.as_slice()).dot(&self).to_vec()
-                    })
-                    .collect();
-                let rv: Vec<&[$t]> = rv_vec
-                    .iter()
-                    .map(|rv_i| rv_i.as_slice())
+                let rv: Vec<$t> = (0..(other.size[0] * other.size[1]))
+                    .into_iter()
+                    .map(|ij| other.m[ij] * self)
                     .collect();
 
-                Matrix::<$t>::new(rv.as_slice()).unwrap()
+                Self::Output {
+                    m: rv,
+                    size: other.size,
+                }
             }
         }
 
@@ -28,7 +20,7 @@ macro_rules! impl_dot_scala {
             type Output = super::Matrix<$t>;
 
             fn dot(&self, other: &Self::Output) -> Self::Output {
-                *self * other.clone()
+                *self * *other
             }
         }
     )*)
@@ -50,7 +42,7 @@ macro_rules! impl_dot_with_scala {
             type Output = super::Matrix<$t>;
 
             fn dot(&self, other: &$t) -> Self::Output {
-                *other * self.clone()
+                *other * *self
             }
         }
     )*)
@@ -71,15 +63,13 @@ macro_rules! impl_dot_vertex {
                     panic!("Length of vector and height of matrix must match.");
                 }
 
-                let self_vec = self.to_vec();
-                let other_vec = other.to_vec();
                 let rv_vec: Vec<$t> = (0..m_size.0)
                     .into_iter()
                     .map(|idx| {
                         (0..m_size.1)
                             .into_iter()
                             .map(|inner_idx| {
-                                self_vec[inner_idx] * other_vec[inner_idx][idx]
+                                self[inner_idx] * other[inner_idx][idx]
                             })
                             .sum()
                     })
@@ -111,15 +101,13 @@ macro_rules! impl_dot_vertex {
                     ));
                 }
 
-                let self_vec = self.to_vec();
-                let other_vec = other.to_vec();
                 let rv_vec: Vec<$t> = (0..m_size.0)
                     .into_iter()
                     .map(|idx| {
                         (0..m_size.1)
                             .into_iter()
                             .map(|inner_idx| {
-                                self_vec[inner_idx] * other_vec[inner_idx][idx]
+                                self[inner_idx] * other[inner_idx][idx]
                             })
                             .sum()
                     })
@@ -148,14 +136,13 @@ macro_rules! impl_dot_with_vertex {
                     panic!("Vertex length does not match the width of matrix while in multiplication of matrix and vertex");
                 }
 
-                let other_vec = other.to_vec();
-                let rv_vec: Vec<$t> = self
-                    .to_vec()
-                    .iter()
-                    .map(|m_j| {
-                        m_j.iter()
+                let rv_vec: Vec<$t> = (0..m_size.1)
+                    .into_iter()
+                    .map(|j| {
+                        self[j]
+                            .iter()
                             .enumerate()
-                            .map(|(idx, m_ij)| *m_ij * other_vec[idx])
+                            .map(|(idx, m_ij)| *m_ij * other[idx])
                             .sum()
                     })
                     .collect();
@@ -189,14 +176,13 @@ macro_rules! impl_dot_with_vertex {
                     ));
                 }
 
-                let other_vec = other.to_vec();
-                let rv_vec: Vec<$t> = self
-                    .to_vec()
-                    .iter()
-                    .map(|m_j| {
-                        m_j.iter()
+                let rv_vec: Vec<$t> = (0..m_size.1)
+                    .into_iter()
+                    .map(|j| {
+                        self[j]
+                            .iter()
                             .enumerate()
-                            .map(|(idx, m_ij)| *m_ij * other_vec[idx])
+                            .map(|(idx, m_ij)| *m_ij * other[idx])
                             .sum()
                     })
                     .collect();
@@ -218,8 +204,6 @@ macro_rules! impl_dot_matrix {
             type Output = Self;
 
             fn mul(self, other: Self::Output) -> Self::Output {
-                use super::Matrix;
-
                 let m_size = self.size();
                 let n_size = other.size();
                 if m_size.0 != n_size.1 {
@@ -230,28 +214,19 @@ macro_rules! impl_dot_matrix {
                     );
                 }
 
-                let self_vec = self.to_vec();
-                let other_vec = other.to_vec();
-                let rv_vec: Vec<Vec<$t>> = (0..m_size.1)
-                    .into_iter()
-                    .map(|j| {
-                        (0..n_size.0)
-                            .into_iter()
-                            .map(|i| {
-                                (0..m_size.0)
-                                .into_iter()
-                                .map(|idx| self_vec[j][idx] * other_vec[idx][i])
-                                .sum()
-                            })
-                            .collect()
-                    })
-                    .collect();
-                let rv: Vec<&[$t]> = rv_vec
-                    .iter()
-                    .map(|rv_j| rv_j.as_slice())
-                    .collect();
+                let mut rv: Vec<$t> = Vec::with_capacity(n_size.0 * m_size.1);
+                (0..m_size.1).for_each(|j| (0..n_size.0).for_each(|i| {
+                    rv.push((0..m_size.0)
+                        .into_iter()
+                        .map(|idx| self[j][idx] * other[idx][i])
+                        .sum()
+                    );
+                }));
 
-                Matrix::<$t>::new(rv.as_slice()).unwrap()
+                Self::Output {
+                    m: rv,
+                    size: [n_size.0, m_size.1]
+                }
             }
         }
 
@@ -259,7 +234,6 @@ macro_rules! impl_dot_matrix {
             type Output = crate::error::SlalErr<super::Matrix<$t>, $t>;
 
             fn dot(&self, other: &Self) -> Self::Output {
-                use super::Matrix;
                 use crate::error::SlalError;
 
                 let self_size = self.size();
@@ -271,28 +245,20 @@ macro_rules! impl_dot_matrix {
                     ))
                 }
 
-                let self_vec = self.to_vec();
-                let other_vec = other.to_vec();
-                let rv_vec: Vec<Vec<$t>> = (0..self_size.1)
-                    .into_iter()
-                    .map(|j| {
-                        (0..other_size.0)
-                            .into_iter()
-                            .map(|i| {
-                                (0..self_size.0)
-                                .into_iter()
-                                .map(|idx| self_vec[j][idx] * other_vec[idx][i])
-                                .sum()
-                            })
-                            .collect()
-                    })
-                    .collect();
-                let rv: Vec<&[$t]> = rv_vec
-                    .iter()
-                    .map(|rv_j| rv_j.as_slice())
-                    .collect();
+                let mut rv: Vec<$t> = Vec::with_capacity(self_size.1 * other_size.0);
+                (0..self_size.1).for_each(|j| (0..other_size.0).for_each(|i| {
+                    rv.push(
+                        (0..self_size.0)
+                        .into_iter()
+                        .map(|idx| self[j][idx] * other[idx][i])
+                        .sum()
+                    );
+                }));
 
-                Matrix::<$t>::new(rv.as_slice())
+                Ok(Self {
+                    m: rv,
+                    size: [other_size.0, self_size.1],
+                })
             }
         }
     )*)
