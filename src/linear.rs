@@ -35,6 +35,26 @@ where
 {
     type Output;
 
+    /**
+    Calculates cross product of vector/matrix
+
+    # Example
+    ```
+    use slal::linear::Cross;
+    use slal::vertex::Vertex;
+
+    let mut v = Vertex::new(&[1, 2, 3]);
+    let w = Vertex::new(&[1, 4, 9]);
+
+    v.t();
+
+    assert!(v.cross(&w) == Ok(Vertex::<i32>::new(&[
+        2 * 9 - 3 * 4,
+        3 * 1 - 1 * 9,
+        1 * 4 - 2 * 1,
+    ])));
+    ```
+     */
     fn cross(&self, other: &T) -> Self::Output;
 }
 
