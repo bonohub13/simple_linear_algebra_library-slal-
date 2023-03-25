@@ -36,3 +36,6 @@
     - When converting to a vector with `to_vec`, convert it to 2D vector
     - Better for performance, and easy to check for falty matrix by doing size \
     checking. (check if data size is x * y)
+
+## Other things todo
+1. Write documentation for added features (functions)
