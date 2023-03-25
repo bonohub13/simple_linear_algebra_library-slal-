@@ -30,7 +30,7 @@
     2. ~~test~~
 
 ## Changes
-1. Use single Vector to represent datas for Matrix
+1. ~~Use single Vector to represent datas for Matrix~~ (2023/03/25)
     - Use input data (x, y reference slice) to get size \
     (assume data size doesn't change)
     - When converting to a vector with `to_vec`, convert it to 2D vector
