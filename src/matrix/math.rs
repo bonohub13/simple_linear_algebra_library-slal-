@@ -3,29 +3,23 @@ macro_rules! impl_add {
         impl std::ops::Add for super::Matrix<$t> {
             type Output = super::Matrix<$t>;
 
-            fn add(self, other: super::Matrix<$t>) -> super::Matrix<$t> {
-                use super::Matrix;
+            fn add(self, other: super::Matrix<$t>) -> Self::Output {
                 use std::iter::zip;
 
                 if self.size() != other.size() {
                     panic!("Failed to add two matrices with differing size");
                 }
 
-                let rv: Vec<Vec<$t>> = zip(self.to_vec(), other.to_vec())
+                let rv: Vec<$t> = zip(self.m, other.m)
                     .map(|(v, w)| {
-                        let rv_i: Vec<$t> = zip(v.as_slice(), w.as_slice())
-                            .map(|(v_i, w_i)| *v_i + *w_i)
-                            .collect();
-
-                        rv_i
+                        v + w
                     })
                     .collect();
-                let rv_slices: Vec<&[$t]> = rv
-                    .iter()
-                    .map(|rv_i| rv_i.as_slice())
-                    .collect();
 
-                Matrix::<$t>::new(rv_slices.as_slice()).unwrap()
+                Self::Output {
+                    m: rv,
+                    size: self.size
+                }
             }
         }
     )*)
@@ -38,29 +32,23 @@ macro_rules! impl_sub {
         impl std::ops::Sub for super::Matrix<$t> {
             type Output = super::Matrix<$t>;
 
-            fn sub(self, other: super::Matrix<$t>) -> super::Matrix<$t> {
-                use super::Matrix;
+            fn sub(self, other: super::Matrix<$t>) -> Self::Output {
                 use std::iter::zip;
 
                 if self.size() != other.size() {
                     panic!("Failed to substract two matrices with differing size");
                 }
 
-                let rv: Vec<Vec<$t>> = zip(self.to_vec(), other.to_vec())
+                let rv: Vec<$t> = zip(self.m, other.m)
                     .map(|(v, w)| {
-                        let rv_i: Vec<$t> = zip(v.as_slice(), w.as_slice())
-                            .map(|(v_i, w_i)| *v_i - *w_i)
-                            .collect();
-
-                        rv_i
+                        v - w
                     })
                     .collect();
-                let rv_slices: Vec<&[$t]> = rv
-                    .iter()
-                    .map(|rv_i| rv_i.as_slice())
-                    .collect();
 
-                Matrix::<$t>::new(rv_slices.as_slice()).unwrap()
+                Self::Output {
+                    m: rv,
+                    size: self.size,
+                }
             }
         }
     )*)

@@ -90,9 +90,14 @@ fn dot_with_scala() {
 #[test]
 fn dot_vertex() {
     let v = Vertex::<u128>::new(&[1, 2, 3]);
-    let w = Vertex::<u128>::new(&[1, 4, 9]);
+    let mut w = Vertex::<u128>::new(&[1, 4, 9]);
 
-    assert!(v.dot(&w) == Ok(1 + 8 + 27))
+    w.t();
+
+    match v.dot(&w) {
+        Ok(dot) => assert!(dot == (1 + 8 + 27)),
+        Err(_) => assert!(false),
+    };
 }
 
 #[test]
@@ -108,17 +113,24 @@ fn dot_vertex_invalid() {
 
 #[test]
 fn cross() {
-    let v = Vertex::<f32>::new(&[1.0, 2.0, 3.0]);
+    let mut v = Vertex::<f32>::new(&[1.0, 2.0, 3.0]);
     let w = Vertex::<f32>::new(&[0.1, 0.8, 2.7]);
 
-    assert!(
-        v.cross(&w)
-            == Ok(Vertex::new(&[
-                2.0 * 2.7 - 3.0 * 0.8,
-                3.0 * 0.1 - 1.0 * 2.7,
-                1.0 * 0.8 - 2.0 * 0.1
-            ]))
-    )
+    v.t();
+
+    match v.cross(&w) {
+        Ok(cross) => {
+            assert!(
+                cross
+                    == Vertex::new(&[
+                        2.0 * 2.7 - 3.0 * 0.8,
+                        3.0 * 0.1 - 1.0 * 2.7,
+                        1.0 * 0.8 - 2.0 * 0.1
+                    ])
+            );
+        }
+        Err(_) => assert!(false),
+    };
 }
 
 #[test]

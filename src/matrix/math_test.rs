@@ -5,7 +5,13 @@ fn add() {
     let m = Matrix::<i8>::new(&[&[1, 2, 3], &[11, 12, 13]]).unwrap();
     let n = Matrix::<i8>::new(&[&[21, 22, 23], &[31, 32, 33]]).unwrap();
 
-    assert_eq!(m + n, Matrix::new(&[&[22, 24, 26], &[42, 44, 46]]).unwrap());
+    assert_eq!(
+        m + n,
+        Matrix {
+            m: vec![22, 24, 26, 42, 44, 46],
+            size: [3, 2]
+        }
+    );
 }
 
 #[test]
@@ -24,7 +30,10 @@ fn sub() {
 
     assert_eq!(
         m - n,
-        Matrix::new(&[&[-20, -20, -20], &[-20, -20, -20]]).unwrap()
+        Matrix {
+            m: vec![-20, -20, -20, -20, -20, -20],
+            size: [3, 2]
+        }
     );
 }
 

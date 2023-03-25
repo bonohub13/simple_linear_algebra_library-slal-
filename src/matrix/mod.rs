@@ -72,10 +72,14 @@ where
         let mut previous_horizontal_length: usize = size.0;
 
         for (idx, v) in matrix.into_iter().enumerate() {
-            if idx > 0 && previous_horizontal_length != v.len() {
-                return Err(SlalError::MatrixInitializationError(String::from(
-                    Self::DIFFERENT_HORIZONTAL_VECTOR_IN_MATRIX,
-                )));
+            if idx > 0 {
+                if previous_horizontal_length != v.len() {
+                    return Err(SlalError::MatrixInitializationError(String::from(
+                        Self::DIFFERENT_HORIZONTAL_VECTOR_IN_MATRIX,
+                    )));
+                }
+
+                previous_horizontal_length = v.len();
             }
 
             v.into_iter().for_each(|v_i| m.push(*v_i));
@@ -161,14 +165,18 @@ where
         let size = [matrix[0].len(), matrix.len()];
         let mut m: Vec<T> = Vec::with_capacity(size[0] * size[1]);
         let mut past_size: usize = size[0];
-        for (matrix_idx, vertex) in matrix.into_iter().enumerate() {
-            if matrix_idx > 0 && past_size != vertex.len() {
-                return Err(SlalError::MatrixUpdateError(
-                    Self::DIFFERENT_HORIZONTAL_VECTOR_IN_MATRIX_ON_UPDATE.to_string(),
-                ));
+        for (matrix_idx, v) in matrix.into_iter().enumerate() {
+            if matrix_idx > 0 {
+                if past_size != v.len() {
+                    return Err(SlalError::MatrixUpdateError(
+                        Self::DIFFERENT_HORIZONTAL_VECTOR_IN_MATRIX_ON_UPDATE.to_string(),
+                    ));
+                }
+
+                past_size = v.len();
             }
 
-            vertex.iter().for_each(|v_i| m.push(*v_i));
+            v.iter().for_each(|v_i| m.push(*v_i));
         }
 
         self.m = m;
@@ -214,7 +222,7 @@ where
         let mut m: Vec<T> = Vec::with_capacity(self.size[0] * self.size[1]);
         (0..self.size[0]).for_each(|i| {
             (0..self.size[1]).for_each(|j| {
-                m.push(self.m[j * self.size[1] + i]);
+                m.push(self.m[j * self.size[0] + i]);
             })
         });
 
@@ -366,7 +374,7 @@ mod test {
         assert_eq!(
             m,
             Matrix::<i32> {
-                m: vec![1, 2, 3, 4],
+                m: vec![2, 3, 3, 4],
                 size: [2, 2]
             }
         );

@@ -1,3 +1,108 @@
+macro_rules! impl_mul_vertex {
+    ($($t:ty)*) => ($(
+        impl std::ops::Mul<crate::vertex::Vertex<$t>> for crate::vertex::Vertex<$t> {
+            type Output = super::Matrix<$t>;
+
+            fn mul(self, other: crate::vertex::Vertex<$t>) -> Self::Output {
+                if self.len() != other.len() {
+                    panic!("Length of two vectors must match.");
+                } else if self.is_transposed() == other.is_transposed() {
+                    if self.is_transposed() {
+                        panic!("Cannot multiply vectors that are both vertical.");
+                    } else {
+                        panic!("Cannot multiply vectors that are both horizontal.")
+                    }
+                }
+
+                if self.is_transposed() {
+                    let mut rv: Vec<$t> = Vec::with_capacity(self.len() * other.len());
+                    (0..self.len()).for_each(|j| (0..other.len()).for_each(|i| {
+                        rv.push(self[j] * other[i]);
+                    }));
+
+                    Self::Output {
+                        m: rv,
+                        size: [other.len(), self.len()]
+                    }
+                } else {
+                    let rv: $t = (0..self.len())
+                        .into_iter()
+                        .map(|ij| self[ij] * other[ij])
+                        .sum();
+
+                    Self::Output {
+                        m: vec![rv],
+                        size: [1, 1]
+                    }
+                }
+            }
+        }
+
+        impl crate::linear::Dot<crate::vertex::Vertex<$t>> for crate::vertex::Vertex<$t> {
+            type Output = crate::error::SlalErr<$t, $t>;
+
+            fn dot(&self, other: &Self) -> <Self as crate::linear::Dot<crate::vertex::Vertex<$t>>>::Output {
+                use crate::error::SlalError;
+
+                if self.len() != other.len() {
+                    return Err(SlalError::UnmatchingVertexLength(
+                        format!("{:?}", *self),
+                        format!("{:?}", *other)
+                    ));
+                }
+                if self.is_transposed() || !other.is_transposed() {
+                    return Err(SlalError::VertexStateError(format!(
+                        "{:?}", *self,
+                    )));
+                }
+
+                let rv: $t = (0..self.len())
+                    .into_iter()
+                    .map(|ij| self[ij] * other[ij])
+                    .sum();
+
+                Ok(rv)
+            }
+        }
+
+        impl crate::linear::Cross<crate::vertex::Vertex<$t>> for crate::vertex::Vertex<$t> {
+            type Output = crate::error::SlalErr<crate::vertex::Vertex<$t>, $t>;
+
+            fn cross(&self, other: &Self) -> Self::Output {
+                use crate::vertex::Vertex;
+                use crate::error::SlalError;
+
+                let self_len = self.len();
+
+                if self_len != other.len() {
+                    return Err(SlalError::UnmatchingVertexLength(
+                        format!("{:?}", *self),
+                        format!("{:?}", *other)
+                    ))
+                }
+
+                if !self.is_transposed() || other.is_transposed() {
+                    return Err(SlalError::VertexStateError(format!(
+                        "{:?}", *self,
+                    )));
+                }
+
+                let rv: Vec<$t> = (0..self_len)
+                    .into_iter()
+                    .map(|idx| {
+                        self[(idx + 1) % self_len] * other[(idx + 2) % self_len]
+                        - self[(idx + 2) % self_len] * other[(idx + 1) % self_len]
+                    })
+                    .collect();
+
+                Ok(Vertex::new(rv.as_slice()))
+            }
+        }
+    )*)
+}
+
+impl_mul_vertex! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+
 macro_rules! impl_dot_scala {
     ($($t:ty)*) => ($(
         impl std::ops::Mul<super::Matrix<$t>> for $t {
@@ -20,7 +125,7 @@ macro_rules! impl_dot_scala {
             type Output = super::Matrix<$t>;
 
             fn dot(&self, other: &Self::Output) -> Self::Output {
-                *self * *other
+                *self * other.clone()
             }
         }
     )*)
@@ -42,7 +147,7 @@ macro_rules! impl_dot_with_scala {
             type Output = super::Matrix<$t>;
 
             fn dot(&self, other: &$t) -> Self::Output {
-                *other * *self
+                *other * self.clone()
             }
         }
     )*)

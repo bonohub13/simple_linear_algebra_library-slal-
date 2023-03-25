@@ -4,15 +4,12 @@ macro_rules! impl_from {
             #[doc = $doc]
             #[inline(always)]
             fn from(other: super::Matrix<$Small>) -> Self {
-                let m: Vec<Vec<$Large>> = other
-                    .to_vec()
-                    .iter()
-                    .map(|m_j| m_j.iter().map(|m_ij| *m_ij as $Large).collect())
-                    .collect();
+                let m: Vec<$Large> = other.m.iter().map(|m_ij| *m_ij as $Large).collect();
 
-                let m_slice: Vec<&[$Large]> = m.iter().map(|m_j| m_j.as_slice()).collect();
-
-                super::Matrix::<$Large>::new(m_slice.as_slice()).unwrap()
+                super::Matrix::<$Large> {
+                    m,
+                    size: other.size,
+                }
             }
         }
     };

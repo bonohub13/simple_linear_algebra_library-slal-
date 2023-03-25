@@ -5,7 +5,6 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
     const DELTA: f64 = 1e-10;
 
     // Assumes all matrices are square matrix
-    let m_vec = m.to_vec();
     let size = m.size();
 
     // Using Doolittle's method to compute upper triangular matrix
@@ -18,9 +17,9 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
                 // lower triangular matrix
                 u.push(0.);
                 l.push(if i == 0 {
-                    m_vec[j][0] / m_vec[0][0]
+                    m[j][0] / m[0][0]
                 } else {
-                    (m_vec[j][i]
+                    (m[j][i]
                         - (0..(i - 1))
                             .into_iter()
                             .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + i])
@@ -35,9 +34,9 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
                 // for diagonal lines
                 l.push(1.);
                 u.push(if j == 0 {
-                    m_vec[0][i]
+                    m[0][i]
                 } else {
-                    m_vec[j][i]
+                    m[j][i]
                         - (0..(i - 1))
                             .into_iter()
                             .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + i])
@@ -55,9 +54,9 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
                 // upper triangular matrix
                 l.push(0.);
                 u.push(if j == 0 {
-                    m_vec[0][i]
+                    m[0][i]
                 } else {
-                    m_vec[j][i]
+                    m[j][i]
                         - (0..(i - 1))
                             .into_iter()
                             .map(|i_| l[j * size.1 + i_] * u[i_ * size.1 + j])
@@ -72,10 +71,7 @@ fn upper_triangular(m: &super::Matrix<f64>) -> crate::error::SlalErr<super::Matr
     }
 
     Ok(super::Matrix::<f64> {
-        m: (0..size.1)
-            .into_iter()
-            .map(|j| (0..size.0).into_iter().map(|i| u[j * size.1 + i]).collect())
-            .collect(),
+        m: u,
         size: [size.0, size.1],
     })
 }
@@ -92,10 +88,9 @@ macro_rules! impl_triangular_matrix {
                     return false;
                 }
 
-                let m_vec = self.to_vec();
                 for j in 0..size.1 {
                     for i in (j+1)..size.0 {
-                        if m_vec[j][i] != 0 as $t {
+                        if self[j][i] != 0 as $t {
                             return false;
                         }
                     }
@@ -111,10 +106,9 @@ macro_rules! impl_triangular_matrix {
                     return false;
                 }
 
-                let m_vec = self.to_vec();
                 for j in 0..size.1 {
                     for i in 0..j {
-                        if m_vec[j][i] != 0 as $t {
+                        if self[j][i] != 0 as $t {
                             return false;
                         }
                     }
@@ -161,24 +155,19 @@ macro_rules! impl_diagonal_matrix {
     ($($t:ty)*) => ($(
         impl crate::linear::DiagonalMatrix<$t> for super::Matrix<$t> {
             fn diagonal(diagonal: &[$t]) -> super::Matrix<$t> {
-                let m_vec: Vec<Vec<$t>> = (0..diagonal.len())
-                    .into_iter()
-                    .map(|j| {
-                        (0..diagonal.len())
-                            .into_iter()
-                            .map(|i| {
-                                if i == j {
-                                    diagonal[i]
-                                } else {
-                                    0 as $t
-                                }
-                            })
-                            .collect::<Vec<$t>>()
+                let mut m: Vec<$t> = Vec::with_capacity(diagonal.len().pow(2));
+                (0..diagonal.len()).for_each(|j| {
+                    (0..diagonal.len()).for_each(|i| {
+                        if i == j {
+                            m.push(diagonal[i]);
+                        } else {
+                            m.push(0 as $t);
+                        }
                     })
-                    .collect();
+                });
 
                 super::Matrix {
-                    m: m_vec,
+                    m: m,
                     size: [diagonal.len(), diagonal.len()],
                 }
             }
@@ -190,7 +179,6 @@ macro_rules! impl_diagonal_matrix {
                     return false;
                 }
 
-                let m_vec = self.to_vec();
                 let zero = 0 as $t;
                 for j in 0..size.1 {
                     for i in j..size.0 {
@@ -198,7 +186,7 @@ macro_rules! impl_diagonal_matrix {
                             continue;
                         }
 
-                        if m_vec[j][i] != zero || m_vec[i][j] != zero {
+                        if self[j][i] != zero || self[i][j] != zero {
                             return false;
                         }
                     }
@@ -237,11 +225,10 @@ macro_rules! impl_determinant {
                     ))
                 }
 
-                let m_vec = self.to_vec();
                 if self.is_upper_triangular() || self.is_lower_triangular() {
                     let mut rv: $t = 1 as $t;
 
-                    (0..size.0).for_each(|idx| rv *= m_vec[idx][idx]);
+                    (0..size.0).for_each(|idx| rv *= self[idx][idx]);
 
                     return Ok(rv as f64)
                 }
@@ -250,16 +237,16 @@ macro_rules! impl_determinant {
                     (0, 0) => Err(SlalError::EmptyMatrix(String::from(
                         "Cannot caluculate determinant for empty matrix"
                     ))),
-                    (1, 1) => Ok(m_vec[0][0] as f64),
+                    (1, 1) => Ok(self[0][0] as f64),
                     (2, 2) => {
-                        let rv = (m_vec[0][0] * m_vec[1][1]) as f64 - (m_vec[1][0] * m_vec[0][1]) as f64;
+                        let rv = (self[0][0] * self[1][1]) as f64 - (self[1][0] * self[0][1]) as f64;
 
                         Ok(rv)
                     }
                     (3, 3) => {
-                        let m_1 = m_vec[0][0] as f64 * ((m_vec[1][1] * m_vec[2][2]) as f64 - (m_vec[2][1] * m_vec[1][2]) as f64);
-                        let m_2 = m_vec[1][0] as f64 * ((m_vec[0][1] * m_vec[2][2]) as f64 - (m_vec[2][1] * m_vec[0][2]) as f64);
-                        let m_3 = m_vec[2][0] as f64 * ((m_vec[0][1] * m_vec[1][2]) as f64 - (m_vec[1][1] * m_vec[0][2]) as f64);
+                        let m_1 = self[0][0] as f64 * ((self[1][1] * self[2][2]) as f64 - (self[2][1] * self[1][2]) as f64);
+                        let m_2 = self[1][0] as f64 * ((self[0][1] * self[2][2]) as f64 - (self[2][1] * self[0][2]) as f64);
+                        let m_3 = self[2][0] as f64 * ((self[0][1] * self[1][2]) as f64 - (self[1][1] * self[0][2]) as f64);
 
                         Ok(m_1 - m_2 + m_3)
                     }
@@ -273,7 +260,7 @@ macro_rules! impl_determinant {
                         let mut det = 1.;
                         (0..size.1)
                             .for_each(|ij| {
-                                det *= u.m[ij][ij];
+                                det *= u[ij][ij];
                             });
 
                         Ok(det)
