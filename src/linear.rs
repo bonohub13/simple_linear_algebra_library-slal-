@@ -181,9 +181,7 @@ pub trait DiagonalMatrix<T> {
     fn is_diagonal(&self) -> bool;
 }
 
-pub trait Determinant<T> {
-    type Output;
-
+pub trait Determinant<T>: TriangularMatrix {
     /**
     Calculates the determinant of a matrix with size (n, n)
 
@@ -197,5 +195,21 @@ pub trait Determinant<T> {
     assert!(m.det() == Ok(-2.0));
     ```
      */
-    fn det(&self) -> crate::error::SlalErr<Self::Output, T>;
+    fn det(&self) -> crate::error::SlalErr<f64, T>;
+}
+
+pub trait Inverse<T>: Cofactor<T> {
+    /**
+    Calculates the inverse of a matrix
+     */
+    fn inverse(&self) -> crate::error::SlalErr<Self::Output, T>;
+}
+
+pub trait Cofactor<T> {
+    type Output;
+
+    /**
+    Calculates the matrix of cofactors of a matrix
+     */
+    fn cofactor(&self) -> crate::error::SlalErr<Self::Output, T>;
 }

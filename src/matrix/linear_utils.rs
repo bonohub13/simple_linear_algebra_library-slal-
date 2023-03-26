@@ -205,9 +205,7 @@ impl_diagonal_matrix! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 
 macro_rules! impl_determinant {
     ($($t:ty)*) => ($(
         impl crate::linear::Determinant<$t> for super::Matrix<$t> {
-            type Output = f64;
-
-            fn det(&self) -> crate::error::SlalErr<Self::Output, $t> {
+            fn det(&self) -> crate::error::SlalErr<f64, $t> {
                 use crate::error::SlalError;
                 use crate::linear::TriangularMatrix;
 
@@ -272,3 +270,62 @@ macro_rules! impl_determinant {
 }
 
 impl_determinant! { i8 u8 i16 u16 i32 u32 f32 f64 }
+
+fn minor<T: Copy>(mtx: &super::Matrix<T>, row: usize, column: usize) -> super::Matrix<T> {
+    use super::Matrix;
+
+    // Square matrix check has been done
+    let mut minor: Vec<T> = Vec::with_capacity(mtx.size[0] * mtx.size[1]);
+    (0..mtx.size[1]).for_each(|j| {
+        (0..mtx.size[0]).for_each(|i| {
+            if j == row || i == column {
+                return;
+            }
+
+            minor.push(mtx.m[j * mtx.size[1] + i]);
+        })
+    });
+
+    Matrix::<T> {
+        m: minor.clone(),
+        size: [mtx.size[0] - 1, mtx.size[1] - 1],
+    }
+}
+
+macro_rules! impl_cofactor {
+    ($($t:ty)*) => ($(
+        impl crate::linear::Cofactor<$t> for super::Matrix<$t> {
+            type Output = super::Matrix<f64>;
+
+            fn cofactor(&self) -> crate::error::SlalErr<Self::Output, $t> {
+                use crate::error::SlalError;
+                use crate::linear::Determinant;
+
+                if self.size[0] != self.size[1] {
+                    return Err(SlalError::NotSquareMatrix(
+                        format!("{:?}", self.clone()),
+                        format!("{}", self.size[0]),
+                        format!("{}", self.size[1]),
+                    ));
+                }
+
+                let mut m: Vec<f64> = Vec::with_capacity(self.size[0] * self.size[1]);
+                let gain: f64 = -1.;
+                for j in 0..self.size[1] {
+                    for i in 0..self.size[0] {
+                        let det = match minor(self, j, i).det() {
+                            Ok(det) => det,
+                            Err(err) => return Err(err),
+                        };
+
+                        m.push(gain.powi((2 - ((i + j) % 2)) as i32) * det);
+                    }
+                }
+
+                Ok(Self::Output { m, size: self.size })
+            }
+        }
+    )*)
+}
+
+impl_cofactor! { i8 u8 i16 u16 i32 u32 f32 f64 }
