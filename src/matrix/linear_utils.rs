@@ -309,20 +309,67 @@ macro_rules! impl_cofactor {
                     ));
                 }
 
-                let mut m: Vec<f64> = Vec::with_capacity(self.size[0] * self.size[1]);
-                let gain: f64 = -1.;
-                for j in 0..self.size[1] {
-                    for i in 0..self.size[0] {
-                        let det = match minor(self, j, i).det() {
-                            Ok(det) => det,
-                            Err(err) => return Err(err),
-                        };
+                match self.size {
+                    [0, 0] => Err(SlalError::EmptyMatrix(format!("{:?}", self.clone()))),
+                    [1, 1] => Ok(Self::Output {
+                        m: vec![self[0][0] as f64],
+                        size: self.size,
+                    }),
+                    [2, 2] => Ok(Self::Output {
+                        m: vec![
+                            self[0][0] as f64,
+                            -(self[1][0] as f64),
+                            -(self[0][1] as f64),
+                            self[1][1] as f64,
+                        ],
+                        size: self.size,
+                    }),
+                    [3, 3] => {
+                        let m_11 = f64::from(self[1][1] * self[2][2]) -
+                            f64::from(self[2][1] * self[1][2]);
+                        let m_12 = f64::from(self[1][0] * self[2][2]) -
+                            f64::from(self[2][0] * self[1][2]);
+                        let m_13 = f64::from(self[1][0] * self[2][1]) -
+                            f64::from(self[2][0] * self[1][1]);
+                        let m_21 = f64::from(self[0][1] * self[2][2]) -
+                            f64::from(self[2][1] * self[0][2]);
+                        let m_22 = f64::from(self[0][0] * self[2][2]) -
+                            f64::from(self[2][0] * self[0][2]);
+                        let m_23 = f64::from(self[0][0] * self[2][2]) -
+                            f64::from(self[2][0] * self[0][2]);
+                        let m_31 = f64::from(self[0][1] * self[1][2]) -
+                            f64::from(self[1][1] * self[0][2]);
+                        let m_32 = f64::from(self[0][0] * self[1][2]) -
+                            f64::from(self[1][0] * self[0][2]);
+                        let m_33 = f64::from(self[0][0] * self[1][1]) -
+                            f64::from(self[1][0] * self[0][1]);
 
-                        m.push(gain.powi((2 - ((i + j) % 2)) as i32) * det);
+                        Ok(Self::Output {
+                            m: vec![
+                                m_11, -m_12, m_13,
+                                -m_21, m_22, -m_23,
+                                m_31, -m_32, m_33,
+                            ],
+                            size: self.size,
+                        })
+                    },
+                    _ => {
+                        let mut m: Vec<f64> = Vec::with_capacity(self.size[0] * self.size[1]);
+                        let gain: f64 = -1.;
+                        for j in 0..self.size[1] {
+                            for i in 0..self.size[0] {
+                                let det = match minor(self, j, i).det() {
+                                    Ok(det) => det,
+                                    Err(err) => return Err(err),
+                                };
+
+                                m.push(gain.powi((2 - ((i + j) % 2)) as i32) * det);
+                            }
+                        }
+
+                        Ok(Self::Output { m, size: self.size })
                     }
                 }
-
-                Ok(Self::Output { m, size: self.size })
             }
         }
     )*)
