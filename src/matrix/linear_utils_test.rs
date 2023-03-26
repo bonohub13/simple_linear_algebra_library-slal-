@@ -1,5 +1,5 @@
 use super::Matrix;
-use crate::linear::{Determinant, DiagonalMatrix, TriangularMatrix};
+use crate::linear::{Cofactor, Determinant, DiagonalMatrix, TriangularMatrix};
 
 #[test]
 fn is_upper_triangular() {
@@ -274,4 +274,94 @@ fn determinant_not_square() {
     let m = Matrix::<i16>::new(&[&[1], &[2]]).unwrap();
 
     assert!(m.det().is_err());
+}
+
+#[test]
+fn cofactor_1d() {
+    let m = Matrix::<u16> {
+        m: vec![1],
+        size: [1, 1],
+    };
+
+    match m.cofactor() {
+        Ok(cofactor) => assert!(
+            cofactor
+                == Matrix::<f64> {
+                    m: vec![1.],
+                    size: [1, 1],
+                }
+        ),
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn cofactor_2d() {
+    let m = Matrix::<i32> {
+        m: vec![1, 2, 3, 4],
+        size: [2, 2],
+    };
+
+    match m.cofactor() {
+        Ok(cofactor) => assert!(
+            cofactor
+                == Matrix::<f64> {
+                    m: vec![1., -3., -2., 4.],
+                    size: [2, 2],
+                }
+        ),
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn cofactor_3d() {
+    let m = Matrix::<u32> {
+        m: vec![1, 2, 3, 4, 5, 6, 7, 8, 9],
+        size: [3, 3],
+    };
+
+    match m.cofactor() {
+        Ok(cofactor) => {
+            println!("{:?}", cofactor);
+            assert!(
+                cofactor
+                    == Matrix::<f64> {
+                        m: vec![
+                            (5 * 9 - 6 * 8) as f64,
+                            -(4 * 9 - 6 * 7) as f64,
+                            (4 * 8 - 5 * 7) as f64,
+                            -(2 * 9 - 3 * 8) as f64,
+                            (1 * 9 - 3 * 7) as f64,
+                            -(1 * 8 - 2 * 7) as f64,
+                            (2 * 6 - 3 * 5) as f64,
+                            -(1 * 6 - 3 * 4) as f64,
+                            (1 * 5 - 2 * 4) as f64,
+                        ],
+                        size: [3, 3],
+                    }
+            )
+        }
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn cofactor_4d() {
+    todo!()
+}
+
+#[test]
+fn cofactor_not_square() {
+    todo!()
+}
+
+#[test]
+fn cofactor_empty() {
+    todo!()
+}
+
+#[test]
+fn cofactor_determinant_not_exist() {
+    todo!()
 }

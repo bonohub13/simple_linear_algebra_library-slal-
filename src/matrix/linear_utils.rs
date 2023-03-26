@@ -287,7 +287,7 @@ fn minor<T: Copy>(mtx: &super::Matrix<T>, row: usize, column: usize) -> super::M
     });
 
     Matrix::<T> {
-        m: minor.clone(),
+        m: minor,
         size: [mtx.size[0] - 1, mtx.size[1] - 1],
     }
 }
@@ -335,8 +335,8 @@ macro_rules! impl_cofactor {
                             f64::from(self[2][1] * self[0][2]);
                         let m_22 = f64::from(self[0][0] * self[2][2]) -
                             f64::from(self[2][0] * self[0][2]);
-                        let m_23 = f64::from(self[0][0] * self[2][2]) -
-                            f64::from(self[2][0] * self[0][2]);
+                        let m_23 = f64::from(self[0][0] * self[2][1]) -
+                            f64::from(self[2][0] * self[0][1]);
                         let m_31 = f64::from(self[0][1] * self[1][2]) -
                             f64::from(self[1][1] * self[0][2]);
                         let m_32 = f64::from(self[0][0] * self[1][2]) -
@@ -355,7 +355,6 @@ macro_rules! impl_cofactor {
                     },
                     _ => {
                         let mut m: Vec<f64> = Vec::with_capacity(self.size[0] * self.size[1]);
-                        let gain: f64 = -1.;
                         for j in 0..self.size[1] {
                             for i in 0..self.size[0] {
                                 let det = match minor(self, j, i).det() {
@@ -363,7 +362,11 @@ macro_rules! impl_cofactor {
                                     Err(err) => return Err(err),
                                 };
 
-                                m.push(gain.powi((2 - ((i + j) % 2)) as i32) * det);
+                                if ((j%2 == 1 && i%2 == 0) || (j%2 == 0 && i%2 == 1)) {
+                                    m.push(-det);
+                                } else {
+                                    m.push(det);
+                                }
                             }
                         }
 
