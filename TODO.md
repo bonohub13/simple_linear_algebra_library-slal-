@@ -38,4 +38,5 @@
     checking. (check if data size is x * y)
 
 ## Other things todo
-1. Write documentation for added features (functions)
+1. ~~Write documentation for added features (functions)~~ (2023/03/xx)
+2. Implement inverse matrix computation
