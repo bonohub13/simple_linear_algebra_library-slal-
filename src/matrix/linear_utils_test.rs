@@ -455,15 +455,30 @@ fn cofactor_4d() -> SlalErr<(), f32> {
 
 #[test]
 fn cofactor_not_square() {
-    todo!()
+    let m = Matrix::<f64> {
+        m: vec![1., 2., 3., 1., 4., 9., 1., 16., 81., 1., 32., 241.],
+        size: [3, 4],
+    };
+
+    assert!(m.cofactor().is_err())
 }
 
 #[test]
 fn cofactor_empty() {
-    todo!()
+    let m = Matrix::<i8>::empty();
+
+    assert!(m.cofactor().is_err())
 }
 
 #[test]
 fn cofactor_determinant_not_exist() {
-    todo!()
+    let m = Matrix::<u8> {
+        m: vec![
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+            24,
+        ],
+        size: [5, 5],
+    };
+
+    assert!(m.cofactor().is_err())
 }
