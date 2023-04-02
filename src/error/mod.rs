@@ -23,8 +23,8 @@ pub enum SlalError<T> {
     EmptyMatrix(String),
     #[error("Cannot perform computation of triangular matrix for matrix {:?}.", 0)]
     TriangularMatrixNotExist(crate::matrix::Matrix<T>),
-    #[error("Value of determinant is zero. {} {:?}", 0, 1)]
-    DeterminantZero(String, crate::matrix::Matrix<T>),
+    #[error("Value of determinant is zero. {:?}", 1)]
+    DeterminantZero(crate::matrix::Matrix<T>),
 }
 
 pub type SlalErr<V, T> = Result<V, SlalError<T>>;

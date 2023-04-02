@@ -379,3 +379,30 @@ macro_rules! impl_cofactor {
 }
 
 impl_cofactor! { i8 u8 i16 u16 i32 u32 f32 f64 }
+
+macro_rules! impl_inverse {
+    ($($t:ty)*) => ($(
+        impl crate::linear::Inverse<$t> for super::Matrix<$t> {
+            fn inverse(&self) -> crate::error::SlalErr<Self::Output, T> {
+                use crate::error::SlalError;
+
+                if self.size[0] == self.size[1] {
+                    return Err(SlalError::NotSquareMatrix(
+                        format!("{:?}", *self),
+                        format!("{}", self.size[0]),
+                        format!("{}", self.size[1]),
+                    ));
+                }
+
+                let det = match self.det() {
+                    Ok(det) => det,
+                    Err(_) => 0.
+                };
+
+                if det == 0. {
+                    return Err(SlalError)
+                }
+            }
+        }
+    )*)
+}
