@@ -387,7 +387,7 @@ macro_rules! impl_inverse {
                 use crate::error::SlalError;
                 use crate::linear::{Determinant, Cofactor};
 
-                if self.size[0] == self.size[1] {
+                if self.size[0] != self.size[1] {
                     return Err(SlalError::NotSquareMatrix(
                         format!("{:?}", *self),
                         format!("{}", self.size[0]),
