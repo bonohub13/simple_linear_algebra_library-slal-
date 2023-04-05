@@ -383,8 +383,9 @@ impl_cofactor! { i8 u8 i16 u16 i32 u32 f32 f64 }
 macro_rules! impl_inverse {
     ($($t:ty)*) => ($(
         impl crate::linear::Inverse<$t> for super::Matrix<$t> {
-            fn inverse(&self) -> crate::error::SlalErr<Self::Output, T> {
+            fn inverse(&self) -> crate::error::SlalErr<Self::Output, $t> {
                 use crate::error::SlalError;
+                use crate::linear::{Determinant, Cofactor};
 
                 if self.size[0] == self.size[1] {
                     return Err(SlalError::NotSquareMatrix(
@@ -400,9 +401,21 @@ macro_rules! impl_inverse {
                 };
 
                 if det == 0. {
-                    return Err(SlalError)
+                    return Err(SlalError::DeterminantZero(self.clone()))
                 }
+
+                let mut cof: super::Matrix<f64>;
+                match self.cofactor() {
+                    Ok(cof_m) => cof = cof_m,
+                    Err(err) => return Err(err),
+                };
+
+                cof.t();
+
+                Ok((1./det) * cof)
             }
         }
     )*)
 }
+
+impl_inverse! { i8 u8 i16 u16 i32 u32 f32 f64 }
