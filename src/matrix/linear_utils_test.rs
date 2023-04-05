@@ -1,6 +1,6 @@
 use super::Matrix;
 use crate::error::SlalErr;
-use crate::linear::{Cofactor, Determinant, DiagonalMatrix, TriangularMatrix};
+use crate::linear::{Cofactor, Determinant, DiagonalMatrix, Inverse, TriangularMatrix};
 
 #[test]
 fn is_upper_triangular() {
@@ -481,4 +481,46 @@ fn cofactor_determinant_not_exist() {
     };
 
     assert!(m.cofactor().is_err())
+}
+
+#[test]
+fn inverse() {
+    let m = Matrix::<i16> {
+        m: vec![1, 2, 3, 4],
+        size: [2, 2],
+    };
+
+    match m.inverse() {
+        Ok(_) => assert!(true),
+        Err(err) => {
+            println!("{:?}", err);
+            assert!(false)
+        }
+    }
+}
+
+#[test]
+fn inverse_not_square() {
+    let m = Matrix::<u16> {
+        m: vec![1, 2, 3, 4],
+        size: [1, 4],
+    };
+
+    match m.inverse() {
+        Ok(_) => assert!(false),
+        Err(_) => assert!(true),
+    }
+}
+
+#[test]
+fn inverse_determinant_zero_value() {
+    let m = Matrix::<i32> {
+        m: vec![0, 1, 0, 3],
+        size: [2, 2],
+    };
+
+    match m.inverse() {
+        Ok(_) => assert!(false),
+        Err(_) => assert!(true),
+    }
 }
