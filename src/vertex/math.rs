@@ -5,6 +5,7 @@ macro_rules! impl_add {
 
             fn add(self, other: super::Vertex<$t>) -> super::Vertex<$t> {
                 use super::Vertex;
+                use rayon::prelude::*;
 
                 if self.len() != other.len()
                     || self.is_transposed() != other.is_transposed() {
@@ -12,19 +13,15 @@ macro_rules! impl_add {
 
                 }
 
-                let retval: Vec<$t> = self
-                    .to_vec()
-                    .iter()
-                    .enumerate()
-                    .map(|(idx, &v_i)| v_i + other.to_vec()[idx])
+                let retval = (0..self.len())
+                    .into_par_iter()
+                    .map(|idx| self[idx] + other[idx])
                     .collect();
-                let mut retval_vertex = Vertex::<$t>::new(retval.as_slice());
 
-                if self.is_transposed() {
-                    retval_vertex.t();
+                Vertex::<$t> {
+                    v: retval,
+                    vertical: self.vertical,
                 }
-
-                retval_vertex
             }
         }
     )*)
@@ -40,25 +37,22 @@ macro_rules! impl_sub {
 
             fn sub(self, other: super::Vertex<$t>) -> Self {
                 use super::Vertex;
+                use rayon::prelude::*;
 
                 if self.len() != other.len()
                     || self.is_transposed() != other.is_transposed() {
                     panic!("Cannot substract {:?} from, {:?}.", other, self);
                 }
 
-                let retval: Vec<$t> = self
-                    .to_vec()
-                    .iter()
-                    .enumerate()
-                    .map(|(idx, &v_i)| v_i - other.to_vec()[idx])
+                let retval: Vec<$t> = (0..self.len())
+                    .into_par_iter()
+                    .map(|idx| self[idx] - other[idx])
                     .collect();
-                let mut retval_vertex = Vertex::<$t>::new(retval.as_slice());
 
-                if self.is_transposed() {
-                    retval_vertex.t();
+                Vertex::<$t> {
+                    v: retval,
+                    vertical: self.vertical,
                 }
-
-                retval_vertex
             }
         }
     )*)
