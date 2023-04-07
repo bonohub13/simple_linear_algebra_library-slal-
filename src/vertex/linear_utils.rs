@@ -4,9 +4,11 @@ macro_rules! impl_magnitude_vertex {
             type Output = f64;
 
             fn magnitude(&self) -> Self::Output {
-                self.to_vec()
-                    .iter()
-                    .map(|v_i| (*v_i * *v_i) as f64)
+                use rayon::prelude::*;
+
+                (0..self.len())
+                    .into_par_iter()
+                    .map(|idx| (self[idx] * self[idx]) as f64)
                     .sum::<f64>()
                     .sqrt()
             }

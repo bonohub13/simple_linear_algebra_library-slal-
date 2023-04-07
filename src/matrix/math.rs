@@ -4,17 +4,16 @@ macro_rules! impl_add {
             type Output = super::Matrix<$t>;
 
             fn add(self, other: super::Matrix<$t>) -> Self::Output {
-                use std::iter::zip;
+                use rayon::prelude::*;
 
                 if self.size() != other.size() {
                     panic!("Failed to add two matrices with differing size");
                 }
 
-                let rv: Vec<$t> = zip(self.m, other.m)
-                    .map(|(v, w)| {
-                        v + w
-                    })
-                    .collect();
+                let mut rv: Vec<$t> = vec![0 as $t; self.size[0] * self.size[1]];
+                rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = self.m[idx] + other.m[idx];
+                });
 
                 Self::Output {
                     m: rv,
@@ -33,17 +32,16 @@ macro_rules! impl_sub {
             type Output = super::Matrix<$t>;
 
             fn sub(self, other: super::Matrix<$t>) -> Self::Output {
-                use std::iter::zip;
+                use rayon::prelude::*;
 
                 if self.size() != other.size() {
                     panic!("Failed to substract two matrices with differing size");
                 }
 
-                let rv: Vec<$t> = zip(self.m, other.m)
-                    .map(|(v, w)| {
-                        v - w
-                    })
-                    .collect();
+                let mut rv: Vec<$t> = vec![0 as $t; self.size[0] * self.size[1]];
+                rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = self.m[idx] - other.m[idx];
+                });
 
                 Self::Output {
                     m: rv,

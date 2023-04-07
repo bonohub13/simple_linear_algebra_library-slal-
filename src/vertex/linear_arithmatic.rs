@@ -4,21 +4,16 @@ macro_rules! impl_mul_scala {
             type Output = Self;
 
             fn mul(self, other: $t) -> super::Vertex<$t> {
+                use rayon::prelude::*;
+
                 let rv_vec: Vec<$t> = (0..self.len())
-                    .into_iter()
+                    .into_par_iter()
                     .map(|i| self[i] * other)
                     .collect();
 
-                if self.is_transposed() {
-                    Self::Output {
-                        v: rv_vec,
-                        vertical: true,
-                    }
-                } else {
-                    Self::Output {
-                        v: rv_vec,
-                        vertical: false,
-                    }
+                Self::Output {
+                    v: rv_vec,
+                    vertical: self.vertical,
                 }
             }
         }

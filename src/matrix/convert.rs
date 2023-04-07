@@ -4,7 +4,9 @@ macro_rules! impl_from {
             #[doc = $doc]
             #[inline(always)]
             fn from(other: super::Matrix<$Small>) -> Self {
-                let m: Vec<$Large> = other.m.iter().map(|m_ij| *m_ij as $Large).collect();
+                use rayon::prelude::*;
+
+                let m: Vec<$Large> = other.m.par_iter().map(|m_ij| *m_ij as $Large).collect();
 
                 super::Matrix::<$Large> {
                     m,

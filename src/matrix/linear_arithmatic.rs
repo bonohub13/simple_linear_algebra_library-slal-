@@ -4,6 +4,8 @@ macro_rules! impl_mul_vertex {
             type Output = super::Matrix<$t>;
 
             fn mul(self, other: crate::vertex::Vertex<$t>) -> Self::Output {
+                use rayon::prelude::*;
+
                 if self.len() != other.len() {
                     panic!("Length of two vectors must match.");
                 } else if self.is_transposed() == other.is_transposed() {
@@ -15,10 +17,10 @@ macro_rules! impl_mul_vertex {
                 }
 
                 if self.is_transposed() {
-                    let mut rv: Vec<$t> = Vec::with_capacity(self.len() * other.len());
-                    (0..self.len()).for_each(|j| (0..other.len()).for_each(|i| {
-                        rv.push(self[j] * other[i]);
-                    }));
+                    let mut rv: Vec<$t> = vec![0 as $t;self.len() * other.len()];
+                    rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                        *val = self[idx / self.len()] * other[idx % self.len()];
+                    });
 
                     Self::Output {
                         m: rv,
@@ -26,7 +28,7 @@ macro_rules! impl_mul_vertex {
                     }
                 } else {
                     let rv: $t = (0..self.len())
-                        .into_iter()
+                        .into_par_iter()
                         .map(|ij| self[ij] * other[ij])
                         .sum();
 
