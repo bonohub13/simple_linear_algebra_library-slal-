@@ -294,12 +294,14 @@ fn minor<T: Copy>(mtx: &super::Matrix<T>, row: usize, column: usize) -> super::M
 
 macro_rules! impl_cofactor {
     ($($t:ty)*) => ($(
+
         impl crate::linear::Cofactor<$t> for super::Matrix<$t> {
             type Output = super::Matrix<f64>;
 
             fn cofactor(&self) -> crate::error::SlalErr<Self::Output, $t> {
                 use crate::error::SlalError;
                 use crate::linear::Determinant;
+                use rayon::prelude::*;
 
                 if self.size[0] != self.size[1] {
                     return Err(SlalError::NotSquareMatrix(
@@ -354,23 +356,29 @@ macro_rules! impl_cofactor {
                         })
                     },
                     _ => {
-                        let mut m: Vec<f64> = Vec::with_capacity(self.size[0] * self.size[1]);
-                        for j in 0..self.size[1] {
-                            for i in 0..self.size[0] {
-                                let det = match minor(self, j, i).det() {
-                                    Ok(det) => det,
-                                    Err(err) => return Err(err),
-                                };
+                        let mut m: Vec<f64> = vec![0.; self.size[0] * self.size[1]];
+                        let rv_err = m.par_iter_mut().enumerate().try_for_each(|(idx, val)| {
+                            let j = idx / self.size[1];
+                            let i = idx % self.size[0];
 
-                                if ((j%2 == 1 && i%2 == 0) || (j%2 == 0 && i%2 == 1)) {
-                                    m.push(-det);
-                                } else {
-                                    m.push(det);
-                                }
+                            match minor(self, j, i).det() {
+                                Ok(det) => {
+                                    if (j%2 == 1 && i%2 == 0) || (j%2 == 0 && i%2 == 1) {
+                                        *val = -det;
+                                    } else {
+                                        *val = det;
+                                    }
+
+                                    Ok(())
+                                },
+                                Err(err) => return Err(err),
                             }
-                        }
+                        });
 
-                        Ok(Self::Output { m, size: self.size })
+                        match rv_err {
+                            Ok(_) => Ok(Self::Output { m, size: self.size }),
+                            Err(err) => Err(err),
+                        }
                     }
                 }
             }
