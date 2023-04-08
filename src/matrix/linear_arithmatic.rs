@@ -45,6 +45,7 @@ macro_rules! impl_mul_vertex {
 
             fn dot(&self, other: &Self) -> <Self as crate::linear::Dot<crate::vertex::Vertex<$t>>>::Output {
                 use crate::error::SlalError;
+                use rayon::prelude::*;
 
                 if self.len() != other.len() {
                     return Err(SlalError::UnmatchingVertexLength(
@@ -59,7 +60,7 @@ macro_rules! impl_mul_vertex {
                 }
 
                 let rv: $t = (0..self.len())
-                    .into_iter()
+                    .into_par_iter()
                     .map(|ij| self[ij] * other[ij])
                     .sum();
 
@@ -73,6 +74,7 @@ macro_rules! impl_mul_vertex {
             fn cross(&self, other: &Self) -> Self::Output {
                 use crate::vertex::Vertex;
                 use crate::error::SlalError;
+                use rayon::prelude::*;
 
                 let self_len = self.len();
 
@@ -89,13 +91,11 @@ macro_rules! impl_mul_vertex {
                     )));
                 }
 
-                let rv: Vec<$t> = (0..self_len)
-                    .into_iter()
-                    .map(|idx| {
-                        self[(idx + 1) % self_len] * other[(idx + 2) % self_len]
-                        - self[(idx + 2) % self_len] * other[(idx + 1) % self_len]
-                    })
-                    .collect();
+                let mut rv: Vec<$t> = vec![0 as $t; self_len];
+                rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = self[(idx + 1) % self_len] * other[(idx + 2) % self_len]
+                        - self[(idx + 2) % self_len] * other[(idx + 1) % self_len];
+                });
 
                 Ok(Vertex::new(rv.as_slice()))
             }
@@ -111,10 +111,12 @@ macro_rules! impl_dot_scala {
             type Output = super::Matrix<$t>;
 
             fn mul(self, other: Self::Output) -> Self::Output {
-                let rv: Vec<$t> = (0..(other.size[0] * other.size[1]))
-                    .into_iter()
-                    .map(|ij| other.m[ij] * self)
-                    .collect();
+                use rayon::prelude::*;
+
+                let mut rv: Vec<$t> = vec![0 as $t; other.size[0] * other.size[1]];
+                rv.par_iter_mut()
+                    .enumerate()
+                    .for_each(|(idx, val)| *val = other.m[idx] * self);
 
                 Self::Output {
                     m: rv,
@@ -163,6 +165,8 @@ macro_rules! impl_dot_vertex {
             type Output = crate::vertex::Vertex<$t>;
 
             fn mul(self, other: super::Matrix<$t>) -> Self::Output {
+                use rayon::prelude::*;
+
                 let m_size = other.size();
                 if self.is_transposed() {
                     panic!("Cannot multiply transposed vector with Matrix.");
@@ -170,19 +174,15 @@ macro_rules! impl_dot_vertex {
                     panic!("Length of vector and height of matrix must match.");
                 }
 
-                let rv_vec: Vec<$t> = (0..m_size.0)
-                    .into_iter()
-                    .map(|idx| {
-                        (0..m_size.1)
-                            .into_iter()
-                            .map(|inner_idx| {
-                                self[inner_idx] * other[inner_idx][idx]
-                            })
-                            .sum()
-                    })
-                    .collect();
+                let mut rv: Vec<$t> = vec![0 as $t; m_size.0];
+                rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = (0..m_size.1)
+                        .into_par_iter()
+                        .map(|inner_idx| self[inner_idx] * other[inner_idx][idx])
+                        .sum();
+                });
 
-                crate::vertex::Vertex::<$t>::new(rv_vec.as_slice())
+                crate::vertex::Vertex::<$t>::new(rv.as_slice())
             }
         }
 
@@ -192,6 +192,7 @@ macro_rules! impl_dot_vertex {
             fn dot(&self, other: &super::Matrix<$t>) -> Self::Output {
                 use crate::error::SlalError;
                 use crate::vertex::Vertex;
+                use rayon::prelude::*;
 
                 let m_size = other.size();
                 if self.is_transposed() {
@@ -208,19 +209,17 @@ macro_rules! impl_dot_vertex {
                     ));
                 }
 
-                let rv_vec: Vec<$t> = (0..m_size.0)
-                    .into_iter()
-                    .map(|idx| {
-                        (0..m_size.1)
-                            .into_iter()
-                            .map(|inner_idx| {
-                                self[inner_idx] * other[inner_idx][idx]
-                            })
-                            .sum()
-                    })
-                    .collect();
+                let mut rv: Vec<$t> = vec![0 as $t; m_size.0];
+                rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = (0..m_size.1)
+                        .into_par_iter()
+                        .map(|inner_idx| {
+                            self[inner_idx] * other[inner_idx][idx]
+                        })
+                        .sum();
+                });
 
-                Ok(Vertex::<$t>::new(rv_vec.as_slice()))
+                Ok(Vertex::<$t>::new(rv.as_slice()))
             }
         }
     )*)
@@ -235,6 +234,7 @@ macro_rules! impl_dot_with_vertex {
 
             fn mul(self, other: Self::Output) -> Self::Output {
                 use crate::vertex::Vertex;
+                use rayon::prelude::*;
 
                 let m_size = self.size();
                 if !other.is_transposed() {
@@ -243,16 +243,14 @@ macro_rules! impl_dot_with_vertex {
                     panic!("Vertex length does not match the width of matrix while in multiplication of matrix and vertex");
                 }
 
-                let rv_vec: Vec<$t> = (0..m_size.1)
-                    .into_iter()
-                    .map(|j| {
-                        self[j]
-                            .iter()
-                            .enumerate()
-                            .map(|(idx, m_ij)| *m_ij * other[idx])
-                            .sum()
-                    })
-                    .collect();
+                let mut rv_vec: Vec<$t> = vec![0 as $t; m_size.1];
+                rv_vec.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = self[idx]
+                        .par_iter()
+                        .enumerate()
+                        .map(|(inner_idx, m_ij)| *m_ij * other[inner_idx])
+                        .sum();
+                });
                 let mut rv = Vertex::<$t>::new(rv_vec.as_slice());
 
                 rv.t();
@@ -267,6 +265,7 @@ macro_rules! impl_dot_with_vertex {
             fn dot(&self, other: &crate::vertex::Vertex<$t>) -> Self::Output {
                 use crate::vertex::Vertex;
                 use crate::error::SlalError;
+                use rayon::prelude::*;
 
                 let m_size = self.size();
                 if !other.is_transposed() {
@@ -283,16 +282,16 @@ macro_rules! impl_dot_with_vertex {
                     ));
                 }
 
-                let rv_vec: Vec<$t> = (0..m_size.1)
-                    .into_iter()
-                    .map(|j| {
-                        self[j]
-                            .iter()
-                            .enumerate()
-                            .map(|(idx, m_ij)| *m_ij * other[idx])
-                            .sum()
-                    })
-                    .collect();
+                let mut rv_vec: Vec<$t> = vec![0 as $t; m_size.1];
+                rv_vec.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = self[idx]
+                        .par_iter()
+                        .enumerate()
+                        .map(|(inner_idx, m_ij)| {
+                            *m_ij * other[inner_idx]
+                        })
+                        .sum();
+                });
                 let mut rv = Vertex::<$t>::new(rv_vec.as_slice());
 
                 rv.t();
@@ -311,6 +310,8 @@ macro_rules! impl_dot_matrix {
             type Output = Self;
 
             fn mul(self, other: Self::Output) -> Self::Output {
+                use rayon::prelude::*;
+
                 let m_size = self.size();
                 let n_size = other.size();
                 if m_size.0 != n_size.1 {
@@ -321,14 +322,15 @@ macro_rules! impl_dot_matrix {
                     );
                 }
 
-                let mut rv: Vec<$t> = Vec::with_capacity(n_size.0 * m_size.1);
-                (0..m_size.1).for_each(|j| (0..n_size.0).for_each(|i| {
-                    rv.push((0..m_size.0)
-                        .into_iter()
-                        .map(|idx| self[j][idx] * other[idx][i])
-                        .sum()
-                    );
-                }));
+                let mut rv: Vec<$t> = vec![0 as $t; n_size.0 * m_size.1];
+                rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = (0..m_size.0)
+                        .into_par_iter()
+                        .map(|inner_idx| {
+                            self[idx / m_size.1][inner_idx] * other[inner_idx][idx % m_size.1]
+                        })
+                        .sum();
+                });
 
                 Self::Output {
                     m: rv,
@@ -342,6 +344,7 @@ macro_rules! impl_dot_matrix {
 
             fn dot(&self, other: &Self) -> Self::Output {
                 use crate::error::SlalError;
+                use rayon::prelude::*;
 
                 let self_size = self.size();
                 let other_size = other.size();
@@ -352,15 +355,15 @@ macro_rules! impl_dot_matrix {
                     ))
                 }
 
-                let mut rv: Vec<$t> = Vec::with_capacity(self_size.1 * other_size.0);
-                (0..self_size.1).for_each(|j| (0..other_size.0).for_each(|i| {
-                    rv.push(
-                        (0..self_size.0)
-                        .into_iter()
-                        .map(|idx| self[j][idx] * other[idx][i])
-                        .sum()
-                    );
-                }));
+                let mut rv: Vec<$t> = vec![0 as $t; self_size.1 * other_size.0];
+                rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
+                    *val = (0..other_size.0)
+                        .into_par_iter()
+                        .map(|inner_idx| {
+                            self[idx / self_size.1][inner_idx] * other[inner_idx][idx % self_size.1]
+                        })
+                        .sum();
+                });
 
                 Ok(Self {
                     m: rv,

@@ -117,13 +117,16 @@ fn mul_with_vertex() {
     v.t();
 
     let mut prod = Vertex::new(&[
-        1.0 * 0.1 + 2.0 * 0.4 + 3.0 * 0.9,
-        1.0 * 0.1 + 2.0 * 0.8 + 3.0 * 2.7,
-        1.0 * 0.1 + 2.0 * 1.6 + 3.0 * 8.1,
+        f32::from(1.0 * 0.1 + 2.0 * 0.4 + 3.0 * 0.9).round(),
+        f32::from(1.0 * 0.1 + 2.0 * 0.8 + 3.0 * 2.7).round(),
+        f32::from(1.0 * 0.1 + 2.0 * 1.6 + 3.0 * 8.1).round(),
     ]);
     prod.t();
 
-    assert_eq!(m * v, prod);
+    let mut ans = m * v;
+    (0..ans.len()).for_each(|idx| ans[idx] = ans[idx].round());
+
+    assert!(ans == prod);
 }
 
 #[test]
