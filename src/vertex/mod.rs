@@ -335,4 +335,16 @@ mod test {
 
         assert_eq!(v.type_name(), "slal::vertex::Vertex<i32>");
     }
+
+    #[test]
+    fn new_transposed() {
+        let v_t = Vertex::<u32>::new_transposed(&[1, 2, 3]);
+
+        assert!(
+            v_t == Vertex::<u32> {
+                v: vec![1, 2, 3],
+                vertical: true,
+            }
+        )
+    }
 }

@@ -447,4 +447,16 @@ mod test {
 
         assert_eq!(m.type_name(), "slal::matrix::Matrix<usize>");
     }
+
+    #[test]
+    fn new_transposed() -> crate::error::SlalErr<(), f32> {
+        let m_t = Matrix::<f32>::new_transposed(&[&[1., 2., 3.], &[0.1, 0.2, 0.3]])?;
+
+        Ok(assert!(
+            m_t == Matrix::<f32> {
+                m: vec![1., 0.1, 2., 0.2, 3., 0.3],
+                size: [2, 3],
+            }
+        ))
+    }
 }
