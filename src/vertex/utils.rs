@@ -39,3 +39,19 @@ macro_rules! vertex_index {
 }
 
 vertex_index! {i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64}
+
+macro_rules! impl_round {
+    ($($t:ty)*) => ($(
+        impl crate::utils::Round for super::Vertex<$t> {
+            fn round(&mut self) {
+                use rayon::prelude::*;
+
+                self.v.par_iter_mut().for_each(|val| {
+                    *val = val.round();
+                });
+            }
+        }
+    )*)
+}
+
+impl_round! {f32 f64}
