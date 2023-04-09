@@ -1,4 +1,5 @@
 use super::Matrix;
+use crate::utils::Round;
 
 #[test]
 fn index() {
@@ -37,4 +38,26 @@ fn index_mut_mutref() {
     (&mut m)[2][2] = 125;
 
     assert!((&mut m)[2][2] == 125);
+}
+
+#[test]
+fn round() {
+    let mut m = Matrix::<f64> {
+        m: vec![
+            1.00000000000001,
+            2.00000000000002,
+            3.00000000000003,
+            4.00000000000004,
+        ],
+        size: [2, 2],
+    };
+
+    m.round();
+
+    assert!(
+        m == Matrix::<f64> {
+            m: vec![1., 2., 3., 4.],
+            size: [2, 2],
+        }
+    )
 }
