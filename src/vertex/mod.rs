@@ -56,6 +56,26 @@ where
     }
 
     /**
+    Create new transposed vector (vertical vector) from slice with size x
+
+    # Example
+    ```
+    use slal::vertex::Vertex;
+
+    // Vector<f32> with size 2
+    //  | 1.0 |
+    //  | 1.1 |
+    let v = Vertex::<f32>::new(&[1.0, 1.1]);
+    ```
+     */
+    pub fn new_transposed(vertex: &[T]) -> Self {
+        Self {
+            v: vertex.to_vec(),
+            vertical: true,
+        }
+    }
+
+    /**
     Returns empty Vertex.
      */
     pub fn empty() -> Self {

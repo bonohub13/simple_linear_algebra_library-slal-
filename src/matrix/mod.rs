@@ -92,6 +92,27 @@ where
     }
 
     /**
+    Creates new transposed matrix from slice with size (x, y)
+
+    # Example
+    ```
+    use slal::matrix::Matrix;
+
+    // Matrix<f32> with size (3, 2)
+    //  | 1.0 2.0 3.0 |
+    //  | 1.1 2.1 3.1 |
+    let m = Matrix::<f32>::new_transposed(&[&[1.0, 1.1], &[2.0, 2.1], &[3.0, 3.1]]).unwrap();
+    ```
+     */
+    pub fn new_transposed(matrix: &[&[T]]) -> crate::error::SlalErr<Self, T> {
+        let mut m = Self::new(matrix)?;
+
+        m.t();
+
+        Ok(m)
+    }
+
+    /**
     Creates new empty matrix with size (0, 0)
 
     # Example
