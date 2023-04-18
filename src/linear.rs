@@ -213,3 +213,17 @@ pub trait Cofactor<T> {
      */
     fn cofactor(&self) -> crate::error::SlalErr<Self::Output, T>;
 }
+
+pub trait Random {
+    type Output;
+    type Size;
+
+    /**
+    Outputs a vector/matrix with random values with specified size.
+     */
+    fn rand(size: Self::Size) -> Self::Output;
+    /**
+    Outputs a transposed vector/matrix with random values with specified size.
+     */
+    fn rand_transposed(size: Self::Size) -> Self::Output;
+}

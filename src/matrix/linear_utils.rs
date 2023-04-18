@@ -427,3 +427,129 @@ macro_rules! impl_inverse {
 }
 
 impl_inverse! { i8 u8 i16 u16 i32 u32 f32 f64 }
+
+macro_rules! impl_random_signed {
+    ($($t:ty)*) => ($(
+        impl crate::linear::Random for super::Matrix<$t> {
+            type Output = Self;
+            type Size = [usize; 2];
+
+            fn rand(size: Self::Size) -> Self::Output {
+                use rand::{Rng, self};
+                use rayon::prelude::*;
+
+                const DELTA: f64 = 1e-6;
+
+                let mut m = vec![0 as $t; size[0] * size[1]];
+                m.par_iter_mut().for_each(|m_ji| {
+                    let mut thread_rng = rand::thread_rng();
+
+                    loop {
+                        *m_ji = thread_rng.gen::<$t>() * if thread_rng.gen::<i8>() % 2 == 1 {
+                            -1 as $t
+                        } else {
+                            1 as $t
+                        };
+
+                        if (*m_ji as f64).abs() > DELTA {
+                            return;
+                        }
+                    }
+                });
+
+                Self::Output {
+                    m,
+                    size,
+                }
+            }
+
+            fn rand_transposed(size: Self::Size) -> Self::Output {
+                use rand::{Rng, self};
+                use rayon::prelude::*;
+
+                const DELTA: f64 = 1e-6;
+
+                let mut m = vec![0 as $t; size[0] * size[1]];
+                m.par_iter_mut().for_each(|m_ji| {
+                    let mut thread_rng = rand::thread_rng();
+
+                    loop {
+                        *m_ji = thread_rng.gen::<$t>() * if thread_rng.gen::<i8>() % 2 == 1 {
+                            -1 as $t
+                        } else {
+                            1 as $t
+                        };
+
+                        if (*m_ji as f64).abs() > DELTA {
+                            return;
+                        }
+                    }
+                });
+
+                Self::Output {
+                    m,
+                    size: [size[1], size[0]],
+                }
+            }
+        }
+    )*)
+}
+
+impl_random_signed! { i8 i16 i32 i64 i128 isize f32 f64 }
+
+macro_rules! impl_random_unsigned {
+    ($($t:ty)*) => ($(
+        impl crate::linear::Random for super::Matrix<$t> {
+            type Output = Self;
+            type Size = [usize; 2];
+
+            fn rand(size: Self::Size) -> Self::Output {
+                use rand::{Rng, self};
+                use rayon::prelude::*;
+
+                let mut m = vec![0 as $t; size[0] * size[1]];
+                m.par_iter_mut().for_each(|m_ji| {
+                    let mut thread_rng = rand::thread_rng();
+
+                    loop {
+                        *m_ji = thread_rng.gen::<$t>();
+
+                        if *m_ji > 0 {
+                            return;
+                        }
+                    }
+                });
+
+                Self::Output {
+                    m,
+                    size,
+                }
+            }
+
+            fn rand_transposed(size: Self::Size) -> Self::Output {
+                use rand::{Rng, self};
+                use rayon::prelude::*;
+
+                let mut m = vec![0 as $t; size[0] * size[1]];
+                m.par_iter_mut().for_each(|m_ji| {
+                    let mut thread_rng = rand::thread_rng();
+
+                    loop {
+                        *m_ji = thread_rng.gen::<$t>();
+
+                        if *m_ji > 0 {
+                            return;
+                        }
+                    }
+                });
+
+                Self::Output {
+                    m,
+                    size: [size[1], size[0]],
+                }
+            }
+        }
+    )*)
+}
+
+impl_random_unsigned! { u8 u16 u32 u64 u128 usize }
