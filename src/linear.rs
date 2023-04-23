@@ -237,6 +237,8 @@ pub trait Normalize {
     fn norm(&self) -> Self::Output;
 }
 
+// Untestable trait
+// Can only be tested wether the result is error or not
 pub trait Eigen {
     type Output;
 

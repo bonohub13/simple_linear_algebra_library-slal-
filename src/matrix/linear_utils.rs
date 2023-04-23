@@ -588,16 +588,41 @@ macro_rules! impl_normlize {
 
 impl_normlize! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
 
-// macro_rules! impl_eigen {
-//     ($($t:ty)*) => ($(
-//         impl crate::linear::Eigen for super::Matrix<$t> {
-//             type Output = f64;
-//
-//             fn eigen(
-//                 &self,
-//             ) -> crate::error::SlalErr<(crate::vertex::Vertex<Self::Output>, Self::Output), Self::Output> {
-//                 let mut eigen_v
-//             }
-//         }
-//     )*)
-// }
+macro_rules! impl_eigen {
+    ($($t:ty)*) => ($(
+        impl crate::linear::Eigen for super::Matrix<$t> {
+            type Output = f64;
+
+            fn eigen(
+                &self,
+            ) -> crate::error::SlalErr<(crate::vertex::Vertex<Self::Output>, Self::Output), Self::Output> {
+                use crate::linear::{Normalize, Random, Dot};
+                use crate::vertex::Vertex;
+
+                const MAX_ITERATION: usize = 100;
+                const TOLERANCE: f64 = 1e-10;
+
+                let m = super::Matrix::<f64>::from(self.clone());
+
+                let mut eigen_v = Vertex::<$t>::rand_transposed(self.size[1]).norm();
+                let mut lambda: f64 = 0.;
+                for _ in 0..MAX_ITERATION {
+                    let a_v = m.dot(&eigen_v)?;
+                    let v_tmp = a_v.norm();
+                    let lambda_tmp = eigen_v.dot(&a_v)? / eigen_v.dot(&eigen_v)?;
+
+                    if (lambda_tmp - lambda).abs() < TOLERANCE {
+                        break;
+                    }
+
+                    eigen_v = v_tmp;
+                    lambda = lambda_tmp;
+                }
+
+                Ok((eigen_v, lambda))
+            }
+        }
+    )*)
+}
+
+impl_eigen! { i8 u8 i16 u16 i32 u32 f32 f64 }
