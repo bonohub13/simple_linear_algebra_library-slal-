@@ -21,16 +21,16 @@ update:
 	$(CC) update
 
 build: fmt update clean
-	$(CC) build
+	$(CC) build --release
 
 run:
 	./bin/${BIN}
 
 test: fmt
-	$(CC) test
+	$(CC) test --release
 
 test-offline: fmt
-	$(CC) test --offline
+	$(CC) test --release --offline
 
 build-linux-image:
 	tar cvf docker/build.tar ${SRC_DIR} ${CARGO_TOML} ${LIB_DIR}
@@ -42,11 +42,17 @@ rebuild-linux-image:
 	docker build . -t ${DOCKER_IMAGE_NAME}/linux -f docker/Dockerfile.linux --no-cache
 	rm docker/build.tar
 
+docker-init:
+	docker run -itd -v $(shell pwd):/app --name ${DOCKER_IMAGE_NAME}-linux ${DOCKER_IMAGE_NAME}/linux /bin/bash
+
 docker-build:
-	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux
+	docker start ${DOCKER_IMAGE_NAME}-linux
+	docker exec ${DOCKER_IMAGE_NAME}-linux /bin/bash -c "make build"
 
 docker-test: fmt clean
-	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "make test"
+	docker start ${DOCKER_IMAGE_NAME}-linux
+	docker exec ${DOCKER_IMAGE_NAME}-linux /bin/bash -c "make test"
 
 docker-test-offline: fmt clean
-	docker run --rm -it -v $(shell pwd):/app ${DOCKER_IMAGE_NAME}/linux /bin/bash -c "make test-offline"
+	docker start ${DOCKER_IMAGE_NAME}-linux
+	docker exec ${DOCKER_IMAGE_NAME}-linux /bin/bash -c "make test-offline"
