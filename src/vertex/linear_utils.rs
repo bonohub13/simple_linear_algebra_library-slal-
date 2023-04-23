@@ -143,3 +143,34 @@ macro_rules! impl_random_unsigned {
 }
 
 impl_random_unsigned! { u8 u16 u32 u64 u128 usize }
+
+macro_rules! impl_normalize {
+    ($($t:ty)*) => ($(
+        impl crate::linear::Normalize for super::Vertex<$t> {
+            type Output = super::Vertex<f64>;
+
+            fn norm(&self) -> Self::Output {
+                use rayon::prelude::*;
+
+                let norm_scala = self
+                    .v
+                    .par_iter()
+                    .map(|v_i| (*v_i as f64).powi(2))
+                    .sum::<f64>()
+                    .sqrt();
+
+                let mut v = vec![0.; self.len()];
+                v.par_iter_mut().enumerate().for_each(|(idx, v_i)| {
+                    *v_i = self[idx] as f64 / norm_scala;
+                });
+
+                Self::Output {
+                    v,
+                    vertical: self.vertical,
+                }
+            }
+        }
+    )*)
+}
+
+impl_normalize! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }

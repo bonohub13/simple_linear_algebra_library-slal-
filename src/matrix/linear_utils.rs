@@ -553,3 +553,51 @@ macro_rules! impl_random_unsigned {
 }
 
 impl_random_unsigned! { u8 u16 u32 u64 u128 usize }
+
+macro_rules! impl_normlize {
+    ($($t:ty)*) => ($(
+        impl crate::linear::Normalize for super::Matrix<$t> {
+            type Output = super::Matrix<f64>;
+
+            fn norm(&self) -> Self::Output {
+                use rayon::prelude::*;
+
+                // normalization scala for individual rows
+                let mut norm_scalas = vec![0.; self.size[1]];
+                norm_scalas.par_iter_mut().enumerate().for_each(|(j, scala)| {
+                    *scala = (0..self.size[0])
+                        .into_par_iter()
+                        .map(|i| (self[j][i] as f64).powi(2))
+                        .sum::<f64>()
+                        .sqrt();
+                });
+
+                let mut m = vec![0.; self.size[0] * self.size[1]];
+                m.par_iter_mut().enumerate().for_each(|(idx, m_ji)| {
+                    *m_ji = self.m[idx] as f64 / norm_scalas[idx / self.size[1]];
+                });
+
+                Self::Output {
+                    m,
+                    size: self.size,
+                }
+            }
+        }
+    )*)
+}
+
+impl_normlize! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+
+// macro_rules! impl_eigen {
+//     ($($t:ty)*) => ($(
+//         impl crate::linear::Eigen for super::Matrix<$t> {
+//             type Output = f64;
+//
+//             fn eigen(
+//                 &self,
+//             ) -> crate::error::SlalErr<(crate::vertex::Vertex<Self::Output>, Self::Output), Self::Output> {
+//                 let mut eigen_v
+//             }
+//         }
+//     )*)
+// }

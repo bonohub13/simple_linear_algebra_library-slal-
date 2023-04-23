@@ -227,3 +227,23 @@ pub trait Random {
      */
     fn rand_transposed(size: Self::Size) -> Self::Output;
 }
+
+pub trait Normalize {
+    type Output;
+
+    /**
+    Normalizes vector/matrix
+     */
+    fn norm(&self) -> Self::Output;
+}
+
+pub trait Eigen {
+    type Output;
+
+    /**
+    Computes eigenvector of matrix
+     */
+    fn eigen(
+        &self,
+    ) -> crate::error::SlalErr<(crate::vertex::Vertex<Self::Output>, Self::Output), Self::Output>;
+}
