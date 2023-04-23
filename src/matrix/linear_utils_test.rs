@@ -1,6 +1,8 @@
 use super::Matrix;
 use crate::error::SlalErr;
-use crate::linear::{Cofactor, Determinant, DiagonalMatrix, Inverse, Normalize, TriangularMatrix};
+use crate::linear::{
+    Cofactor, Determinant, DiagonalMatrix, Eigen, Inverse, Normalize, Random, TriangularMatrix,
+};
 
 #[test]
 fn is_upper_triangular() {
@@ -555,4 +557,32 @@ fn norm() {
     });
 
     assert!(m.norm() == expected_m)
+}
+
+#[test]
+fn eigen() {
+    let m = Matrix::<f32>::rand([3, 3]);
+
+    match m.eigen() {
+        Ok(_) => assert!(true),
+        Err(err) => {
+            dbg!(println!("{:?}", err));
+
+            assert!(false)
+        }
+    }
+}
+
+#[test]
+fn eigen_not_square() {
+    let m = Matrix::<f64>::rand_transposed([2, 3]);
+
+    match m.eigen() {
+        Ok(_) => assert!(false),
+        Err(err) => {
+            dbg!(println!("{:?}", err));
+
+            assert!(true)
+        }
+    }
 }
