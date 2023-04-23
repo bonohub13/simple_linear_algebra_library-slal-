@@ -598,25 +598,49 @@ macro_rules! impl_eigen {
             ) -> crate::error::SlalErr<(crate::vertex::Vertex<Self::Output>, Self::Output), Self::Output> {
                 use crate::linear::{Normalize, Random, Dot};
                 use crate::vertex::Vertex;
+                use crate::error::SlalError;
 
                 const MAX_ITERATION: usize = 100;
                 const TOLERANCE: f64 = 1e-10;
+
+                if self.size[0] != self.size[1] {
+                    return Err(SlalError::NotSquareMatrix(
+                        format!("{:?}", *self),
+                        format!("{}", self.size[0]),
+                        format!("{}", self.size[1]),
+                    ));
+                }
 
                 let m = super::Matrix::<f64>::from(self.clone());
 
                 let mut eigen_v = Vertex::<$t>::rand_transposed(self.size[1]).norm();
                 let mut lambda: f64 = 0.;
                 for _ in 0..MAX_ITERATION {
-                    let a_v = m.dot(&eigen_v)?;
-                    let v_tmp = a_v.norm();
-                    let lambda_tmp = eigen_v.dot(&a_v)? / eigen_v.dot(&eigen_v)?;
+                    let a_v = if eigen_v.is_transposed() {
+                        m.dot(&eigen_v)?
+                    } else {
+                        eigen_v.t();
+                        m.dot(&eigen_v)?
+                    };
+                    let v_new = a_v.norm();
+                    let lambda_new = if eigen_v.is_transposed() {
+                        let eigen_tmp = eigen_v.clone();
 
-                    if (lambda_tmp - lambda).abs() < TOLERANCE {
+                        eigen_v.t();
+                        eigen_v.dot(&a_v)? / eigen_v.dot(&eigen_tmp)?
+                    } else {
+                        let mut eigen_tmp = eigen_v.clone();
+
+                        eigen_tmp.t();
+                        eigen_v.dot(&a_v)? / eigen_v.dot(&eigen_tmp)?
+                    };
+
+                    if (lambda_new - lambda).abs() < TOLERANCE {
                         break;
                     }
 
-                    eigen_v = v_tmp;
-                    lambda = lambda_tmp;
+                    eigen_v = v_new;
+                    lambda = lambda_new;
                 }
 
                 Ok((eigen_v, lambda))
