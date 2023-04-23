@@ -574,7 +574,7 @@ macro_rules! impl_normlize {
 
                 let mut m = vec![0.; self.size[0] * self.size[1]];
                 m.par_iter_mut().enumerate().for_each(|(idx, m_ji)| {
-                    *m_ji = self.m[idx] as f64 / norm_scalas[idx / self.size[1]];
+                    *m_ji = self.m[idx] as f64 / norm_scalas[idx / self.size[0]];
                 });
 
                 Self::Output {

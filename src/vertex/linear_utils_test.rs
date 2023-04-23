@@ -1,5 +1,5 @@
 use super::Vertex;
-use crate::linear::Magnitude;
+use crate::linear::{Magnitude, Normalize};
 use crate::utils::Round;
 
 #[test]
@@ -24,4 +24,19 @@ fn round() {
             vertical: false,
         }
     )
+}
+
+#[test]
+fn norm() {
+    let norm = (1..=3)
+        .into_iter()
+        .map(|v| (v as f64).powi(2))
+        .sum::<f64>()
+        .sqrt();
+    let v = Vertex::<f64> {
+        v: vec![1., 2., 3.],
+        vertical: false,
+    };
+
+    assert!(v.norm() == v * (1. / norm))
 }

@@ -1,6 +1,6 @@
 use super::Matrix;
 use crate::error::SlalErr;
-use crate::linear::{Cofactor, Determinant, DiagonalMatrix, Inverse, TriangularMatrix};
+use crate::linear::{Cofactor, Determinant, DiagonalMatrix, Inverse, Normalize, TriangularMatrix};
 
 #[test]
 fn is_upper_triangular() {
@@ -523,4 +523,36 @@ fn inverse_determinant_zero_value() {
         Ok(_) => assert!(false),
         Err(_) => assert!(true),
     }
+}
+
+#[test]
+fn norm() {
+    let m = Matrix::<u32> {
+        m: vec![1, 2, 3, 4, 5, 6],
+        size: [2, 3],
+    };
+    let norm = [
+        (1..=2)
+            .into_iter()
+            .map(|x| (x as f64).powi(2))
+            .sum::<f64>()
+            .sqrt(),
+        (3..=4)
+            .into_iter()
+            .map(|x| (x as f64).powi(2))
+            .sum::<f64>()
+            .sqrt(),
+        (5..=6)
+            .into_iter()
+            .map(|x| (x as f64).powi(2))
+            .sum::<f64>()
+            .sqrt(),
+    ];
+
+    let mut expected_m = Matrix::<f64>::from(m.clone());
+    expected_m.m.iter_mut().enumerate().for_each(|(idx, m_ji)| {
+        *m_ji = *m_ji / norm[idx / 2];
+    });
+
+    assert!(m.norm() == expected_m)
 }
