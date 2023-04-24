@@ -651,7 +651,119 @@ macro_rules! impl_eigen {
 
 impl_eigen! { i8 u8 i16 u16 i32 u32 f32 f64 }
 
-macro_rules! impl_inner_prod {
+macro_rules! impl_inner_prod_i32_or_smaller {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<i32, i32>;
+
+            fn inner(&self) -> Self::Output {
+                use crate::linear::Dot;
+                use rayon::prelude::*;
+
+                let m = {
+                    let mut m = super::Matrix::<i32>::from(self.clone());
+
+                    m.t();
+
+                    m
+                };
+
+                match m.dot(&super::Matrix::<i32>::from(self.clone())) {
+                    Ok(mtx) => Ok(mtx.m.par_iter().map(|m_ji| *m_ji).sum()),
+                    Err(err) => Err(err)
+                }
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_i32_or_smaller! { i8 i16 i32 }
+
+macro_rules! impl_inner_prod_u32_or_smaller {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<u32, u32>;
+
+            fn inner(&self) -> Self::Output {
+                use crate::linear::Dot;
+                use rayon::prelude::*;
+
+                let m = {
+                    let mut m = super::Matrix::<u32>::from(self.clone());
+
+                    m.t();
+
+                    m
+                };
+
+                match m.dot(&super::Matrix::<u32>::from(self.clone())) {
+                    Ok(mtx) => Ok(mtx.m.par_iter().map(|m_ji| *m_ji).sum()),
+                    Err(err) => Err(err)
+                }
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_u32_or_smaller! { u8 u16 u32 }
+
+macro_rules! impl_inner_prod_large_signed_int {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<i128, i128>;
+
+            fn inner(&self) -> Self::Output {
+                use crate::linear::Dot;
+                use rayon::prelude::*;
+
+                let m = {
+                    let mut m = super::Matrix::<i128>::from(self.clone());
+
+                    m.t();
+
+                    m
+                };
+
+                match m.dot(&super::Matrix::<i128>::from(self.clone())) {
+                    Ok(mtx) => Ok(mtx.m.par_iter().map(|m_ji| *m_ji).sum()),
+                    Err(err) => Err(err)
+                }
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_large_signed_int! { i64 i128 }
+
+macro_rules! impl_inner_prod_large_unsigned_int {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<u128, u128>;
+
+            fn inner(&self) -> Self::Output {
+                use crate::linear::Dot;
+                use rayon::prelude::*;
+
+                let m = {
+                    let mut m = super::Matrix::<u128>::from(self.clone());
+
+                    m.t();
+
+                    m
+                };
+
+                match m.dot(&super::Matrix::<u128>::from(self.clone())) {
+                    Ok(mtx) => Ok(mtx.m.par_iter().map(|m_ji| *m_ji).sum()),
+                    Err(err) => Err(err)
+                }
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_large_unsigned_int! { u64 u128 }
+
+macro_rules! impl_inner_prod_size {
     ($($t:ty)*) => ($(
         impl crate::linear::InnerProduct for super::Matrix<$t> {
             type Output = crate::error::SlalErr<$t, $t>;
@@ -669,7 +781,7 @@ macro_rules! impl_inner_prod {
                 };
 
                 match m.dot(self) {
-                    Ok(mtx) => Ok(mtx.m.par_iter().map(|m_ji| *m_ji).sum::<$t>()),
+                    Ok(mtx) => Ok(mtx.m.par_iter().map(|m_ji| *m_ji).sum()),
                     Err(err) => Err(err)
                 }
             }
@@ -677,4 +789,32 @@ macro_rules! impl_inner_prod {
     )*)
 }
 
-impl_inner_prod! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+impl_inner_prod_size! { isize usize }
+
+macro_rules! impl_inner_prod_float {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<f64, f64>;
+
+            fn inner(&self) -> Self::Output {
+                use crate::linear::Dot;
+                use rayon::prelude::*;
+
+                let m = {
+                    let mut m = super::Matrix::<f64>::from(self.clone());
+
+                    m.t();
+
+                    m
+                };
+
+                match m.dot(&super::Matrix::<f64>::from(self.clone())) {
+                    Ok(mtx) => Ok(mtx.m.par_iter().map(|m_ji| *m_ji).sum()),
+                    Err(err) => Err(err)
+                }
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_float! { f32 f64 }
