@@ -357,7 +357,7 @@ macro_rules! impl_dot_matrix {
 
                 let mut rv: Vec<$t> = vec![0 as $t; self_size.1 * other_size.0];
                 rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
-                    *val = (0..other_size.0)
+                    *val = (0..other_size.1)
                         .into_par_iter()
                         .map(|inner_idx| {
                             self[idx / self_size.1][inner_idx] * other[inner_idx][idx % self_size.1]
