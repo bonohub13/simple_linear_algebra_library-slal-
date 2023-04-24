@@ -249,3 +249,12 @@ pub trait Eigen {
         &self,
     ) -> crate::error::SlalErr<(crate::vertex::Vertex<Self::Output>, Self::Output), Self::Output>;
 }
+
+pub trait InnerProduct {
+    type Output;
+
+    /**
+    Computes the inner product of vertex/matrix
+     */
+    fn inner(&self) -> Self::Output;
+}

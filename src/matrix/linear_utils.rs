@@ -650,3 +650,31 @@ macro_rules! impl_eigen {
 }
 
 impl_eigen! { i8 u8 i16 u16 i32 u32 f32 f64 }
+
+macro_rules! impl_inner_prod {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<$t, $t>;
+
+            fn inner(&self) -> Self::Output {
+                use crate::linear::Dot;
+                use rayon::prelude::*;
+
+                let m = {
+                    let mut m = self.clone();
+
+                    m.t();
+
+                    m
+                };
+
+                match m.dot(self) {
+                    Ok(mtx) => Ok(mtx.m.par_iter().map(|m_ji| *m_ji).sum::<$t>()),
+                    Err(err) => Err(err)
+                }
+            }
+        }
+    )*)
+}
+
+impl_inner_prod! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }

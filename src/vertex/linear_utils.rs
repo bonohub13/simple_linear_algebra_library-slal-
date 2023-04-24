@@ -174,3 +174,19 @@ macro_rules! impl_normalize {
 }
 
 impl_normalize! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+
+macro_rules! impl_inner_prod {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Vertex<$t> {
+            type Output = $t;
+
+            fn inner(&self) -> Self::Output {
+                use rayon::prelude::*;
+
+                self.v.par_iter().map(|v_i| *v_i * *v_i).sum::<$t>()
+            }
+        }
+    )*)
+}
+
+impl_inner_prod! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
