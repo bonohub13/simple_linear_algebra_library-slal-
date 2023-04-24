@@ -1,7 +1,8 @@
 use super::Matrix;
 use crate::error::SlalErr;
 use crate::linear::{
-    Cofactor, Determinant, DiagonalMatrix, Eigen, Inverse, Normalize, Random, TriangularMatrix,
+    Cofactor, Determinant, DiagonalMatrix, Eigen, InnerProduct, Inverse, Normalize, Random,
+    TriangularMatrix,
 };
 
 #[test]
@@ -584,5 +585,29 @@ fn eigen_not_square() {
 
             assert!(true)
         }
+    }
+}
+
+#[test]
+fn inner() {
+    // | 1 2  |
+    // | 3 5  |
+    // | 7 11 |
+    let m = Matrix::<i32> {
+        m: vec![1, 2, 3, 5, 7, 11],
+        size: [2, 3],
+    };
+
+    match m.inner() {
+        Ok(inner_prod) => {
+            dbg!(println!("{}", inner_prod));
+            let ans = dbg!([1 + 9 + 49, 2 + 15 + 77, 2 + 15 + 77, 4 + 25 + 121]
+                .iter()
+                .map(|m_i| *m_i)
+                .sum::<i32>());
+
+            assert!(inner_prod == ans)
+        }
+        Err(_) => assert!(false),
     }
 }

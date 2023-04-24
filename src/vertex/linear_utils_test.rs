@@ -1,5 +1,5 @@
 use super::Vertex;
-use crate::linear::{Magnitude, Normalize};
+use crate::linear::{InnerProduct, Magnitude, Normalize};
 use crate::utils::Round;
 
 #[test]
@@ -39,4 +39,14 @@ fn norm() {
     };
 
     assert!(v.norm() == v * (1. / norm))
+}
+
+#[test]
+fn inner() {
+    let v = Vertex::<i8> {
+        v: vec![1, 2, 3, 4],
+        vertical: false,
+    };
+
+    assert!(v.inner() == 1 + 4 + 9 + 16)
 }
