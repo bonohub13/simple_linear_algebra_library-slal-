@@ -175,7 +175,87 @@ macro_rules! impl_normalize {
 
 impl_normalize! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
 
-macro_rules! impl_inner_prod {
+macro_rules! impl_inner_prod_float {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Vertex<$t> {
+            type Output = f64;
+
+            fn inner(&self) -> Self::Output {
+                use rayon::prelude::*;
+
+                self.v.par_iter().map(|v_i| (*v_i as f64).powi(2) ).sum()
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_float! { f32 f64 }
+
+macro_rules! impl_inner_prod_i32_or_smaller {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Vertex<$t> {
+            type Output = i32;
+
+            fn inner(&self) -> Self::Output {
+                use rayon::prelude::*;
+
+                self.v.par_iter().map(|v_i| (*v_i as i32).pow(2)).sum()
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_i32_or_smaller! { i8 i16 i32 }
+
+macro_rules! impl_inner_prod_u32_or_smaller {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Vertex<$t> {
+            type Output = u32;
+
+            fn inner(&self) -> Self::Output {
+                use rayon::prelude::*;
+
+                self.v.par_iter().map(|v_i| (*v_i as u32)).sum()
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_u32_or_smaller! { u8 u16 u32 }
+
+macro_rules! impl_inner_prod_large_signed_int {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Vertex<$t> {
+            type Output = i128;
+
+            fn inner(&self) -> Self::Output {
+                use rayon::prelude::*;
+
+                self.v.par_iter().map(|v_i| (*v_i as i128).pow(2)).sum()
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_large_signed_int! { i64 i128 }
+
+macro_rules! impl_inner_prod_large_unsigned_int {
+    ($($t:ty)*) => ($(
+        impl crate::linear::InnerProduct for super::Vertex<$t> {
+            type Output = u128;
+
+            fn inner(&self) -> Self::Output {
+                use rayon::prelude::*;
+
+                self.v.par_iter().map(|v_i| (*v_i as u128).pow(2)).sum()
+            }
+        }
+    )*)
+}
+
+impl_inner_prod_large_unsigned_int! { u64 u128 }
+
+macro_rules! impl_inner_prod_size {
     ($($t:ty)*) => ($(
         impl crate::linear::InnerProduct for super::Vertex<$t> {
             type Output = $t;
@@ -183,10 +263,10 @@ macro_rules! impl_inner_prod {
             fn inner(&self) -> Self::Output {
                 use rayon::prelude::*;
 
-                self.v.par_iter().map(|v_i| *v_i * *v_i).sum::<$t>()
+                self.v.par_iter().map(|v_i| v_i.pow(2) ).sum()
             }
         }
     )*)
 }
 
-impl_inner_prod! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+impl_inner_prod_size! { isize usize }
