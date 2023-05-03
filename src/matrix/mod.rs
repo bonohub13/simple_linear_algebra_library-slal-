@@ -252,7 +252,7 @@ where
     }
 
     /**
-    Returns a square vector (Vec<Vec<T>>) of matrix.
+    Returns a square vector (`Vec<Vec<T>>`) of matrix.
 
     # Example
     ```
