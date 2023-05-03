@@ -14,6 +14,9 @@ all: build run
 clean:
 	$(CC) clean
 
+doc:
+	$(CC) doc
+
 fmt:
 	$(CC) fmt
 
@@ -48,6 +51,10 @@ docker-init:
 docker-build:
 	docker start ${DOCKER_IMAGE_NAME}-linux
 	docker exec ${DOCKER_IMAGE_NAME}-linux /bin/bash -c "make build"
+
+docker-doc:
+	docker start ${DOCKER_IMAGE_NAME}-linux
+	docker exec ${DOCKER_IMAGE_NAME}-linux /bin/bash -c "make doc"
 
 docker-test: fmt clean
 	docker start ${DOCKER_IMAGE_NAME}-linux
