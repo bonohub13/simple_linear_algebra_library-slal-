@@ -125,7 +125,7 @@ macro_rules! impl_mul_with_scala {
                 stringify!($t),,
                 r">::new(&[1, 2, 3]);\n",
                 r"let scala = 2;\n",
-                r"\nassert!(v.dot(&scala) == Vertex::<",
+                r"\nassert!(scala.dot(&v) == Vertex::<",
                 stringify!($t),,
                 r">::new(&[2, 4, 6]));\n",
                 r"```",
@@ -153,7 +153,7 @@ impl_mul_with_scala! { f32, concat!(
     "use slal::vec::*;\n",
     "\nlet v = Vertex::<f32>::new(&[1., 0.2, 0.03]);\n",
     "let scala = 4.;\n",
-    "\nassert!(v.dot(&scala) == Vertex::<f32>::new(&[4., 0.8, 0.12]));\n",
+    "\nassert!(scala.dot(&v) == Vertex::<f32>::new(&[4., 0.8, 0.12]));\n",
     "```",
 ) }
 impl_mul_with_scala! { f64, concat!(
@@ -163,6 +163,6 @@ impl_mul_with_scala! { f64, concat!(
     "use slal::vec::*;\n",
     "\nlet v = Vertex::<f64>::new(&[1., 0.2, 0.03]);\n",
     "let scala = 4.;\n",
-    "\nassert!(v.dot(&scala) == Vertex::<f64>::new(&[4., 0.8, 0.12]));\n",
+    "\nassert!(scala.dot(&v) == Vertex::<f64>::new(&[4., 0.8, 0.12]));\n",
     "```",
 ) }
