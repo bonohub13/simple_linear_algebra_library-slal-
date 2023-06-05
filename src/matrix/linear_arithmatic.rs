@@ -1,5 +1,5 @@
 macro_rules! impl_mul_vertex {
-    ($($t:ty)*) => ($(
+    ($t:ty, $doc1: expr, $doc2: expr) => {
         impl std::ops::Mul<crate::vertex::Vertex<$t>> for crate::vertex::Vertex<$t> {
             type Output = super::Matrix<$t>;
 
@@ -17,14 +17,14 @@ macro_rules! impl_mul_vertex {
                 }
 
                 if self.is_transposed() {
-                    let mut rv: Vec<$t> = vec![0 as $t;self.len() * other.len()];
+                    let mut rv: Vec<$t> = vec![0 as $t; self.len() * other.len()];
                     rv.par_iter_mut().enumerate().for_each(|(idx, val)| {
                         *val = self[idx / self.len()] * other[idx % self.len()];
                     });
 
                     Self::Output {
                         m: rv,
-                        size: [other.len(), self.len()]
+                        size: [other.len(), self.len()],
                     }
                 } else {
                     let rv: $t = (0..self.len())
@@ -34,7 +34,7 @@ macro_rules! impl_mul_vertex {
 
                     Self::Output {
                         m: vec![rv],
-                        size: [1, 1]
+                        size: [1, 1],
                     }
                 }
             }
@@ -43,20 +43,22 @@ macro_rules! impl_mul_vertex {
         impl crate::linear::Dot<crate::vertex::Vertex<$t>> for crate::vertex::Vertex<$t> {
             type Output = crate::error::SlalErr<$t, $t>;
 
-            fn dot(&self, other: &Self) -> <Self as crate::linear::Dot<crate::vertex::Vertex<$t>>>::Output {
+            #[doc=$doc1]
+            fn dot(
+                &self,
+                other: &Self,
+            ) -> <Self as crate::linear::Dot<crate::vertex::Vertex<$t>>>::Output {
                 use crate::error::SlalError;
                 use rayon::prelude::*;
 
                 if self.len() != other.len() {
                     return Err(SlalError::UnmatchingVertexLength(
                         format!("{:?}", *self),
-                        format!("{:?}", *other)
+                        format!("{:?}", *other),
                     ));
                 }
                 if self.is_transposed() || !other.is_transposed() {
-                    return Err(SlalError::VertexStateError(format!(
-                        "{:?}", *self,
-                    )));
+                    return Err(SlalError::VertexStateError(format!("{:?}", *self,)));
                 }
 
                 let rv: $t = (0..self.len())
@@ -71,9 +73,10 @@ macro_rules! impl_mul_vertex {
         impl crate::linear::Cross<crate::vertex::Vertex<$t>> for crate::vertex::Vertex<$t> {
             type Output = crate::error::SlalErr<crate::vertex::Vertex<$t>, $t>;
 
+            #[doc=$doc2]
             fn cross(&self, other: &Self) -> Self::Output {
-                use crate::vertex::Vertex;
                 use crate::error::SlalError;
+                use crate::vertex::Vertex;
                 use rayon::prelude::*;
 
                 let self_len = self.len();
@@ -81,14 +84,12 @@ macro_rules! impl_mul_vertex {
                 if self_len != other.len() {
                     return Err(SlalError::UnmatchingVertexLength(
                         format!("{:?}", *self),
-                        format!("{:?}", *other)
-                    ))
+                        format!("{:?}", *other),
+                    ));
                 }
 
                 if !self.is_transposed() || other.is_transposed() {
-                    return Err(SlalError::VertexStateError(format!(
-                        "{:?}", *self,
-                    )));
+                    return Err(SlalError::VertexStateError(format!("{:?}", *self,)));
                 }
 
                 let mut rv: Vec<$t> = vec![0 as $t; self_len];
@@ -100,13 +101,154 @@ macro_rules! impl_mul_vertex {
                 Ok(Vertex::new(rv.as_slice()))
             }
         }
-    )*)
+    };
+
+    ($t:ty) => {
+        impl_mul_vertex!(
+            $t,
+            concat!(
+                r"Computes dot product of `slal::vertex::Vertex<",
+                stringify!($t),
+                r">` and `slal::vertex::Vertex<",
+                stringify!($t),
+                r">`.\n",
+                r"\n# Examples\n",
+                r"```\n",
+                r"use slal::vertex::Vertex;\n",
+                r"use slal::linear::Dot;\n",
+                r"\nlet u = Vertex::<",
+                stringify!($t),
+                r">::new(&[1, 2, 3]);\n",
+                r"let v = Vertex::<",
+                stringify!($t),
+                r">::new_transposed(&[4, 5, 6]);\n",
+                r"\nassert!(u.dot(&v) == 32);\n",
+                r"```",
+            ),
+            concat!(
+                r"Computes cross product of `slal::vertex::Vertex<",
+                stringify!($t),
+                r">` and `slal::vertex::Vertex<",
+                stringify!($t),
+                r">`.\n",
+                r"\n# Examples\n",
+                r"```\n",
+                r"use slal::vertex::Vertex;\n",
+                r"use slal::linear::Cross;\n",
+                r"\nlet u = Vertex::<",
+                stringify!($t),
+                r">::new_transposed(&[1, 2, 3]);\n",
+                r"let v = Vertex::<",
+                stringify!($t),
+                r">::new(&[4, 5, 6]);\n",
+                r"\nassert!(u.cross(&v) == Vertex::<",
+                stringify!($t),
+                r">::new(&[-3, 6, -3]));\n",
+                r"```",
+            )
+        );
+    };
 }
 
-impl_mul_vertex! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+impl_mul_vertex! { i8 }
+impl_mul_vertex! { u8 }
+impl_mul_vertex! { i16 }
+impl_mul_vertex! { u16 }
+impl_mul_vertex! { i32 }
+impl_mul_vertex! { u32 }
+impl_mul_vertex! { i64 }
+impl_mul_vertex! { u64 }
+impl_mul_vertex! { i128 }
+impl_mul_vertex! { u128 }
+impl_mul_vertex! { isize }
+impl_mul_vertex! { usize }
+impl_mul_vertex! {
+    f32,
+    concat!(
+        r"Computes dot product of `slal::vertex::Vertex<",
+        r">` and `slal::vertex::Vertex<",
+        stringify!(f32),
+        r">`.\n",
+        r"\n# Examples\n",
+        r"```\n",
+        r"use slal::vertex::Vertex;\n",
+        r"use slal::linear::Dot;\n",
+        r"\nlet u = Vertex::<",
+        stringify!(f32),
+        r">::new(&[1., 0.2, 0.03]);\n",
+        r"let v = Vertex::<",
+        stringify!(f32),
+        r">::new_transposed(&[4., 0.5, 0.06]);\n",
+        r"\nassert!(u.dot(&v) == 4.1018);\n",
+        r"```",
+    ),
+    concat!(
+        r"Computes cross product of `slal::vertex::Vertex<",
+        stringify!(f32),
+        r">` and `slal::vertex::Vertex<",
+        stringify!(f32),
+        r">`.\n",
+        r"\n# Examples\n",
+        r"```\n",
+        r"use slal::vertex::Vertex;\n",
+        r"use slal::linear::Cross;\n",
+        r"\nlet u = Vertex::<",
+        stringify!(f32),
+        r">::new(&[1., 0.2, 0.03]);\n",
+        r"let v = Vertex::<",
+        stringify!(f32),
+        r">::new(&[-4., -0.5, -0.06]);\n",
+        r"\nassert!(u.cross(&v) == Vertex::<",
+        stringify!(f32),
+        r">::new(&[0.003, -0.06, 0.3]));\n",
+        r"```",
+    )
+}
+impl_mul_vertex! {
+    f64,
+    concat!(
+        r"Computes dot product of `slal::vertex::Vertex<",
+        r">` and `slal::vertex::Vertex<",
+        stringify!(f64),
+        r">`.\n",
+        r"\n# Examples\n",
+        r"```\n",
+        r"use slal::vertex::Vertex;\n",
+        r"use slal::linear::Dot;\n",
+        r"\nlet u = Vertex::<",
+        stringify!(f64),
+        r">::new(&[1., 0.2, 0.03]);\n",
+        r"let v = Vertex::<",
+        stringify!(f64),
+        r">::new_transposed(&[4., 0.5, 0.06]);\n",
+        r"\nassert!(u.dot(&v) == 4.1018);\n",
+        r"```",
+    ),
+    concat!(
+        r"Computes cross product of `slal::vertex::Vertex<",
+        stringify!(f64),
+        r">` and `slal::vertex::Vertex<",
+        stringify!(f64),
+        r">`.\n",
+        r"\n# Examples\n",
+        r"```\n",
+        r"use slal::vertex::Vertex;\n",
+        r"use slal::linear::Cross;\n",
+        r"\nlet u = Vertex::<",
+        stringify!(f64),
+        r">::new(&[1., 0.2, 0.03]);\n",
+        r"let v = Vertex::<",
+        stringify!(f64),
+        r">::new(&[-4., -0.5, -0.06]);\n",
+        r"\nassert!(u.cross(&v) == Vertex::<",
+        stringify!(f64),
+        r">::new(&[0.003, -0.06, 0.3]));\n",
+        r"```",
+    )
+}
 
 macro_rules! impl_dot_scala {
-    ($($t:ty)*) => ($(
+    ($t:ty, $doc:expr) => {
         impl std::ops::Mul<super::Matrix<$t>> for $t {
             type Output = super::Matrix<$t>;
 
@@ -128,17 +270,95 @@ macro_rules! impl_dot_scala {
         impl crate::linear::Dot<super::Matrix<$t>> for $t {
             type Output = super::Matrix<$t>;
 
+            #[doc=$doc]
             fn dot(&self, other: &Self::Output) -> Self::Output {
                 *self * other.clone()
             }
         }
-    )*)
+    };
+
+    ($t:ty) => {
+        impl_dot_scala!(
+            $t,
+            concat!(
+                r"Computes dot product of `slal::matrix::Matrix<",
+                stringify!($t),
+                r">` and `",
+                stringify!($t),
+                r"`.\n",
+                r"\n# Examples\n",
+                r"```\n",
+                r"use slal::matrix::*;\n",
+                r"\nlet m = Matrix::<",
+                stringify!($t),
+                r">::new(&[&[1, 2], &[4, 8]]).unwrap();\n",
+                r"let scala = 3;\n",
+                r"\nassert!(m.dot(&scala) == Matrix::<",
+                stringify!($t),
+                r">::new(&[&[3, 6], &[12, 24]]).unwrap());\n",
+                r"```",
+            )
+        );
+    };
 }
 
-impl_dot_scala! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+impl_dot_scala! { i8 }
+impl_dot_scala! { u8 }
+impl_dot_scala! { i16 }
+impl_dot_scala! { u16 }
+impl_dot_scala! { i32 }
+impl_dot_scala! { u32 }
+impl_dot_scala! { i64 }
+impl_dot_scala! { u64 }
+impl_dot_scala! { i128 }
+impl_dot_scala! { u128 }
+impl_dot_scala! { isize }
+impl_dot_scala! { usize }
+impl_dot_scala! {
+    f32,
+    concat!(
+        r"Computes dot product of `slal::matrix::Matrix<",
+        stringify!(f32),
+        r">` and `",
+        stringify!(f32),
+        r"`.\n",
+        r"\n# Examples\n",
+        r"```\n",
+        r"use slal::matrix::*;\n",
+        r"\nlet m = Matrix::<",
+        stringify!(f32),
+        r">::new(&[&[1., 0.2], &[0.04, 0.008]]).unwrap();\n",
+        r"let scala = 3.;\n",
+        r"\nassert!(m.dot(&scala) == Matrix::<",
+        stringify!(f32),
+        r">::new(&[&[3., 0.6], &[0.12, 0.024]]).unwrap());\n",
+        r"```",
+    )
+}
+impl_dot_scala! {
+    f64,
+    concat!(
+        r"Computes dot product of `slal::matrix::Matrix<",
+        stringify!(f64),
+        r">` and `",
+        stringify!(f64),
+        r"`.\n",
+        r"\n# Examples\n",
+        r"```\n",
+        r"use slal::matrix::*;\n",
+        r"\nlet m = Matrix::<",
+        stringify!(f64),
+        r">::new(&[&[1., 2e1], &[4e2, 8e3]]).unwrap();\n",
+        r"let scala = 3.;\n",
+        r"\nassert!(m.dot(&scala) == Matrix::<",
+        stringify!(f64),
+        r">::new(&[&[3., 6e1], &[12e2, 24e3]]).unwrap());\n",
+        r"```",
+    )
+}
 
 macro_rules! impl_dot_with_scala {
-    ($($t:ty)*) => ($(
+    ($t:ty, $doc:expr) => {
         impl std::ops::Mul<$t> for super::Matrix<$t> {
             type Output = super::Matrix<$t>;
 
@@ -150,14 +370,92 @@ macro_rules! impl_dot_with_scala {
         impl crate::linear::Dot<$t> for super::Matrix<$t> {
             type Output = super::Matrix<$t>;
 
+            #[doc=$doc]
             fn dot(&self, other: &$t) -> Self::Output {
                 *other * self.clone()
             }
         }
-    )*)
+    };
+
+    ($t:ty) => {
+        impl_dot_with_scala!(
+            $t,
+            concat!(
+                r"Computes dot product of `",
+                stringify!($t),
+                r"` and `slal::matrix::Matrix<",
+                stringify!($t),
+                r">`.\n",
+                r"\n# Examples\n",
+                r"```\n",
+                r"use slal::matrix::*;\n",
+                r"\nlet m = Matrix::<",
+                stringify!($t),
+                r">::new(&[&[1, 2], &[4, 8]]).unwrap();\n",
+                r"let scala = 3;\n",
+                r"\nassert!(scala.dot(&m) == Matrix::<",
+                stringify!($t),
+                r">::new(&[&[3, 6], &[12, 24]]).unwrap());\n",
+                r"```",
+            )
+        );
+    };
 }
 
-impl_dot_with_scala! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+impl_dot_with_scala! { i8 }
+impl_dot_with_scala! { u8 }
+impl_dot_with_scala! { i16 }
+impl_dot_with_scala! { u16 }
+impl_dot_with_scala! { i32 }
+impl_dot_with_scala! { u32 }
+impl_dot_with_scala! { i64 }
+impl_dot_with_scala! { u64 }
+impl_dot_with_scala! { i128 }
+impl_dot_with_scala! { u128 }
+impl_dot_with_scala! { isize }
+impl_dot_with_scala! { usize }
+impl_dot_with_scala! {
+    f32,
+    concat!(
+        r"Computes dot product of `",
+        stringify!(f32),
+        r"` and `slal::matrix::Matrix<",
+        stringify!(f32),
+        r">`.\n",
+        r"\n# Examples\n",
+        r"```\n",
+        r"use slal::matrix::*;\n",
+        r"\nlet m = Matrix::<",
+        stringify!(f32),
+        r">::new(&[&[1., 0.2], &[0.04, 0.008]]).unwrap();\n",
+        r"let scala = 3.;\n",
+        r"\nassert!(scala.dot(&m) == Matrix::<",
+        stringify!(f32),
+        r">::new(&[&[3., 0.6], &[0.12, 0.024]]).unwrap());\n",
+        r"```",
+    )
+}
+impl_dot_with_scala! {
+    f64,
+    concat!(
+        r"Computes dot product of `",
+        stringify!(f64),
+        r"` and `slal::matrix::Matrix<",
+        stringify!(f64),
+        r">`.\n",
+        r"\n# Examples\n",
+        r"```\n",
+        r"use slal::matrix::*;\n",
+        r"\nlet m = Matrix::<",
+        stringify!(f64),
+        r">::new(&[&[1., 0.2], &[0.04, 0.008]]).unwrap();\n",
+        r"let scala = 3.;\n",
+        r"\nassert!(scala.dot(&m) == Matrix::<",
+        stringify!(f64),
+        r">::new(&[&[3., 0.6], &[0.12, 0.024]]).unwrap());\n",
+        r"```",
+    )
+}
 
 macro_rules! impl_dot_vertex {
     ($($t:ty)*) => ($(
