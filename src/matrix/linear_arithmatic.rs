@@ -457,8 +457,9 @@ impl_dot_with_scala! {
     )
 }
 
+// Vector * Matrix product calculation
 macro_rules! impl_dot_vertex {
-    ($($t:ty)*) => ($(
+    ($t:ty, $doc:expr) => {
         impl std::ops::Mul<super::Matrix<$t>> for crate::vertex::Vertex<$t> {
             type Output = crate::vertex::Vertex<$t>;
 
@@ -487,6 +488,7 @@ macro_rules! impl_dot_vertex {
         impl crate::linear::Dot<super::Matrix<$t>> for crate::vertex::Vertex<$t> {
             type Output = crate::error::SlalErr<Self, $t>;
 
+            #[doc=$doc]
             fn dot(&self, other: &super::Matrix<$t>) -> Self::Output {
                 use crate::error::SlalError;
                 use crate::vertex::Vertex;
@@ -520,10 +522,52 @@ macro_rules! impl_dot_vertex {
                 Ok(Vertex::<$t>::new(rv.as_slice()))
             }
         }
-    )*)
+    };
+
+    ($t:ty) => {
+        impl_dot_vertex!(
+            $t,
+            concat!(
+                r"Computes dot product of `slal::vertex::Vertex<",
+                stringify!($t),
+                r">` and `slal::matrix::Matrix<",
+                stringify!($t),
+                r">`.\n",
+                r"\n# Examples\n",
+                r"```\n",
+                r"use slal::{\n",
+                r"    matrix::*,",
+                r"    vertex::*,",
+                r"};\n",
+                r"\nlet v = Vertex::<",
+                stringify!($t),
+                r">::new(&[1, 2]);\n",
+                r"\nlet m = Matrix::<",
+                stringify!($t),
+                r">::new(&[&[3, 4], &[5, 6]]).unwrap();\n",
+                r"\nassert!(m.dot(&v) == Vertex::<",
+                stringify!($t),
+                r">::new(&[13, 16]));\n",
+                r"```",
+            )
+        );
+    };
 }
 
-impl_dot_vertex! { i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64 }
+impl_dot_vertex! { i8 }
+impl_dot_vertex! { u8 }
+impl_dot_vertex! { i16 }
+impl_dot_vertex! { u16 }
+impl_dot_vertex! { i32 }
+impl_dot_vertex! { u32 }
+impl_dot_vertex! { i64 }
+impl_dot_vertex! { u64 }
+impl_dot_vertex! { i128 }
+impl_dot_vertex! { u128 }
+impl_dot_vertex! { isize }
+impl_dot_vertex! { usize }
+impl_dot_vertex! { f32 }
+impl_dot_vertex! { f64 }
 
 macro_rules! impl_dot_with_vertex {
     ($($t:ty)*) => ($(
