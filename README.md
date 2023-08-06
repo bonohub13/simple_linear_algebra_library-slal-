@@ -29,3 +29,6 @@ Features that been implemented and tested are in this branch. \
 Documentation are going to be added in this branch. \
 Codes that have been documented are going to `main`. \
 __Note__: _Not EVERY Feature_ are being documented.
+
+## Upcoming features
+- RPY (roll, pitch, yaw) computation
