@@ -201,6 +201,15 @@ pub trait Determinant<T>: TriangularMatrix {
 pub trait Inverse<T>: Cofactor<T> {
     /**
     Calculates the inverse of a matrix
+
+    # Example
+    ```
+    use slal::linear::Inverse;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::new(&[&[1, 2], &[3, 4]]).unwrap();
+    let _ = m.inverse().unwrap();
+    ```
      */
     fn inverse(&self) -> crate::error::SlalErr<Self::Output, T>;
 }
@@ -210,6 +219,15 @@ pub trait Cofactor<T> {
 
     /**
     Calculates the matrix of cofactors of a matrix
+
+    # Example
+    ```
+    use slal::linear::Cofactor;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::new(&[&[1, 2], &[3, 4]]).unwrap();
+    let _ = m.cofactor().unwrap();
+    ```
      */
     fn cofactor(&self) -> crate::error::SlalErr<Self::Output, T>;
 }
@@ -220,10 +238,26 @@ pub trait Random {
 
     /**
     Outputs a vector/matrix with random values with specified size.
+
+    # Example
+    ```
+    use slal::linear::Random;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::rand([2, 3]).unwrap();
+    ```
      */
     fn rand(size: Self::Size) -> Self::Output;
     /**
     Outputs a transposed vector/matrix with random values with specified size.
+
+    # Example
+    ```
+    use slal::linear::Random;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::rand_transposed([2, 3]).unwrap();
+    ```
      */
     fn rand_transposed(size: Self::Size) -> Self::Output;
 }
@@ -233,6 +267,15 @@ pub trait Normalize {
 
     /**
     Normalizes vector/matrix
+
+    # Example
+    ```
+    use slal::linear::Normalize;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::new(&[&[1, 2], &[3, 4]]).unwrap();
+    let _ = m.norm();
+    ```
      */
     fn norm(&self) -> Self::Output;
 }
@@ -244,6 +287,15 @@ pub trait Eigen {
 
     /**
     Computes eigenvector of matrix
+
+    # Example
+    ```
+    use slal::linear::Eigen;
+    use slal::linear::Matrix;
+
+    let m = Matrix::new(&[&[1, 2], &[4, 9]]).unwrap();
+    let _ = m.eigen().unwrap();
+    ```
      */
     fn eigen(
         &self,
@@ -255,6 +307,15 @@ pub trait InnerProduct {
 
     /**
     Computes the inner product of vertex/matrix
+
+    # Example
+    ```
+    use slal::linear::InnerProduct;
+    use slal::matrix::Matrix;
+
+    let m = Matrix::new(&[&[1, 2], &[4, 9]]).unwrap();
+    let _ = m.inner().unwrap();
+    ```
      */
     fn inner(&self) -> Self::Output;
 }

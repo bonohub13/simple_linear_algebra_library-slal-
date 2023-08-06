@@ -1,5 +1,5 @@
 macro_rules! impl_mul_scala {
-    ($t:ty, $doc:expr) => {
+    ($t:ty) => {
         impl std::ops::Mul<$t> for super::Vertex<$t> {
             type Output = Self;
 
@@ -21,35 +21,10 @@ macro_rules! impl_mul_scala {
         impl crate::linear::Dot<$t> for super::Vertex<$t> {
             type Output = super::Vertex<$t>;
 
-            #[doc=$doc]
             fn dot(&self, other: &$t) -> <Self as crate::linear::Dot<$t>>::Output {
                 self.clone() * *other
             }
         }
-    };
-
-    ($t:ty) => {
-        impl_mul_scala!(
-            $t,
-            concat!(
-                r"Computes dot product of `slal::vertex::Vertex<",
-                stringify!($t),
-                r">` and scala of `",
-                stringify!($t),
-                r"`.\n",
-                r"\n# Examples\n",
-                r"```\n",
-                r"use slal::vertex::*;\n",
-                r"\nlet v = Vertex::<",
-                stringify!($t),
-                r">::new(&[1, 2, 3]);\n",
-                r"let scala = 2;\n",
-                r"\nassert!(v.dot(&scala) == Vertex::<",
-                stringify!($t),
-                r">::new(&[2, 4, 6]));\n",
-                r"```",
-            )
-        );
     };
 }
 
@@ -65,29 +40,11 @@ impl_mul_scala! { i128 }
 impl_mul_scala! { u128 }
 impl_mul_scala! { isize }
 impl_mul_scala! { usize }
-impl_mul_scala! { f32, concat!(
-    "Computes dot product of `slal::vertex::Vertex<f32>` and scala of `f32`\n",
-    "\n# Examples\n",
-    "```\n",
-    "use slal::vertex::*;\n",
-    "\nlet v = Vertex::<f32>::new(&[1., 0.2, 0.03]);\n",
-    "let scala = 4.;\n",
-    "\nassert!(v.dot(&scala) == Vertex::<f32>::new(&[4., 0.8, 0.12]));\n",
-    "```",
-)}
-impl_mul_scala! { f64, concat!(
-    "Computes dot product of `slal::vertex::Vertex<f64>` and scala of `f64`\n",
-    "\n# Examples\n",
-    "```\n",
-    "use slal::vertex::*;\n",
-    "\nlet v = Vertex::<f64>::new(&[1., 0.2, 0.03]);\n",
-    "let scala = 4.;\n",
-    "\nassert!(v.dot(&scala) == Vertex::<f64>::new(&[4., 0.8, 0.12]));\n",
-    "```",
-) }
+impl_mul_scala! { f32 }
+impl_mul_scala! { f64 }
 
 macro_rules! impl_mul_with_scala {
-    ($t:ty, $doc:expr) => {
+    ($t:ty) => {
         impl std::ops::Mul<super::Vertex<$t>> for $t {
             type Output = super::Vertex<$t>;
 
@@ -99,7 +56,6 @@ macro_rules! impl_mul_with_scala {
         impl crate::linear::Dot<super::Vertex<$t>> for $t {
             type Output = super::Vertex<$t>;
 
-            #[doc=$doc]
             fn dot(
                 &self,
                 other: &super::Vertex<$t>,
@@ -107,30 +63,6 @@ macro_rules! impl_mul_with_scala {
                 other.dot(self)
             }
         }
-    };
-
-    ($t:ty) => {
-        impl_mul_with_scala!(
-            $t,
-            concat!(
-                r"Computes dot product of `slal::vertex::Vertex<",
-                stringify!($t),
-                r">` and scala of `",
-                stringify!($t),
-                r"`.\n",
-                r"\n# Examples\n",
-                r"```\n",
-                r"use slal::vertex::*;\n",
-                r"\nlet v = Vertex::<",
-                stringify!($t),
-                r">::new(&[1, 2, 3]);\n",
-                r"let scala = 2;\n",
-                r"\nassert!(scala.dot(&v) == Vertex::<",
-                stringify!($t),
-                r">::new(&[2, 4, 6]));\n",
-                r"```",
-            )
-        );
     };
 }
 
@@ -146,23 +78,5 @@ impl_mul_with_scala! { i128 }
 impl_mul_with_scala! { u128 }
 impl_mul_with_scala! { isize }
 impl_mul_with_scala! { usize }
-impl_mul_with_scala! { f32, concat!(
-    "Computes dot product of `slal::vertex::Vertex<f32>` and scala of `f32`\n",
-    "\n# Examples\n",
-    "```\n",
-    "use slal::vertex::*;\n",
-    "\nlet v = Vertex::<f32>::new(&[1., 0.2, 0.03]);\n",
-    "let scala = 4.;\n",
-    "\nassert!(scala.dot(&v) == Vertex::<f32>::new(&[4., 0.8, 0.12]));\n",
-    "```",
-) }
-impl_mul_with_scala! { f64, concat!(
-    "Computes dot product of `slal::vertex::Vertex<f64>` and scala of `f64`\n",
-    "\n# Examples\n",
-    "```\n",
-    "use slal::vertex::*;\n",
-    "\nlet v = Vertex::<f64>::new(&[1., 0.2, 0.03]);\n",
-    "let scala = 4.;\n",
-    "\nassert!(scala.dot(&v) == Vertex::<f64>::new(&[4., 0.8, 0.12]));\n",
-    "```",
-) }
+impl_mul_with_scala! { f32 }
+impl_mul_with_scala! { f64 }

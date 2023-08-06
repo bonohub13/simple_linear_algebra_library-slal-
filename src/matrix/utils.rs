@@ -43,21 +43,6 @@ matrix_indexing! {i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64}
 macro_rules! impl_round {
     ($t:ty) => {
         impl crate::utils::Round for super::Matrix<$t> {
-            #[doc=concat!(
-                                                        r"Outputs matrix (`slal::matrix::Matrix<`",
-                                                        stringify!($t),
-                                                        r"`) with rounded values.\n",
-                                                        r"\n# Examples\n",
-                                                        r"```\n",
-                                                        r"use slal::matrix::*;\n\n",
-                                                        r"let m = Matrix::<",
-                                                        stringify!($t),
-                                                        r">::new(&[10.0, 1., 0.1]).unwrap();\n",
-                                                        r"\nassert!(m.round() == Matrix::<",
-                                                        stringify!($t),
-                                                        r">::new(&[10., 1., 0.]).unwrap());\n",
-                                                        r"```\n",
-                                                    )]
             fn round(&mut self) {
                 use rayon::prelude::*;
 

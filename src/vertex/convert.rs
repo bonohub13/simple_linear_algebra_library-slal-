@@ -1,7 +1,6 @@
 macro_rules! impl_from {
-    ($Small: ty, $Large: ty, $doc: expr) => {
+    ($Small: ty, $Large: ty) => {
         impl From<super::Vertex<$Small>> for super::Vertex<$Large> {
-            #[doc = $doc]
             #[inline(always)]
             fn from(other: super::Vertex<$Small>) -> Self {
                 let v: Vec<$Large> = other
@@ -21,20 +20,6 @@ macro_rules! impl_from {
                 }
             }
         }
-    };
-
-    ($Small: ty, $Large: ty) => {
-        impl_from!(
-            $Small,
-            $Large,
-            concat!(
-                "Converts `slal::vertex::Vertex<",
-                stringify!($Small),
-                ">` to `slal::vertex::Vertex<",
-                stringify!($Large),
-                ">` losslessly"
-            )
-        );
     };
 }
 

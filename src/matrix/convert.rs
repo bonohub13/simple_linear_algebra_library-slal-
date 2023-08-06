@@ -1,7 +1,6 @@
 macro_rules! impl_from {
-    ($Small: ty, $Large: ty, $doc: expr) => {
+    ($Small: ty, $Large: ty) => {
         impl From<super::Matrix<$Small>> for super::Matrix<$Large> {
-            #[doc = $doc]
             #[inline(always)]
             fn from(other: super::Matrix<$Small>) -> Self {
                 use rayon::prelude::*;
@@ -14,20 +13,6 @@ macro_rules! impl_from {
                 }
             }
         }
-    };
-
-    ($Small: ty, $Large: ty) => {
-        impl_from!(
-            $Small,
-            $Large,
-            concat!(
-                "Converts `slal::matrix::Matrix<",
-                stringify!($Small),
-                ">` to `slal::matrix::Matrix<",
-                stringify!($Large),
-                ">` losslessly"
-            )
-        );
     };
 }
 
