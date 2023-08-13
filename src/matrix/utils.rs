@@ -55,3 +55,107 @@ macro_rules! impl_round {
 }
 
 impl_round! {f32 f64}
+
+macro_rules! impl_rpy {
+    ($t:ty) => {
+        impl crate::utils::RPY for super::Matrix<$t> {
+            type Output = crate::error::SlalErr<super::Matrix<f64>, f64>;
+
+            fn rpy(&self, rpy: [f64; 3]) -> Self::Output {
+                use crate::linear::Dot;
+                use rayon::prelude::*;
+
+                let rotation_matrix = super::Matrix::<f64> {
+                    m: vec![
+                        // 1st row
+                        rpy[2].cos() * rpy[1].cos(),
+                        (0..3)
+                            .into_par_iter()
+                            .map(|i| if i == 2 { rpy[i].cos() } else { rpy[i].sin() })
+                            .product::<f64>()
+                            - rpy[2].sin() * rpy[0].cos(),
+                        (0..3)
+                            .into_par_iter()
+                            .map(|i| if i == 1 { rpy[i].sin() } else { rpy[i].cos() })
+                            .product::<f64>()
+                            + rpy[2].sin() * rpy[0].sin(),
+                        // 2nd row
+                        rpy[2].sin() * rpy[1].cos(),
+                        rpy.par_iter().map(|rpy_i| (*rpy_i).sin()).product::<f64>()
+                            * rpy[2].cos()
+                            * rpy[0].cos(),
+                        (0..3)
+                            .into_par_iter()
+                            .map(|i| if i != 0 { rpy[i].cos() } else { rpy[i].sin() })
+                            .product::<f64>()
+                            - rpy[2].cos() * rpy[0].sin(),
+                        // 3rd row
+                        -rpy[1].sin(),
+                        (0..2)
+                            .into_par_iter()
+                            .map(|i| if i == 0 { rpy[i].sin() } else { rpy[i].cos() })
+                            .product(),
+                        (0..2).into_par_iter().map(|i| rpy[i].cos()).product(),
+                    ],
+                    size: [3, 3],
+                };
+
+                super::Matrix::<f64>::from(self).dot(&rotation_matrix)
+            }
+        }
+    };
+}
+
+impl crate::utils::RPY for super::Matrix<f64> {
+    type Output = crate::error::SlalErr<Self, f64>;
+
+    fn rpy(&self, rpy: [f64; 3]) -> Self::Output {
+        use crate::linear::Dot;
+        use rayon::prelude::*;
+
+        let rotation_matrix = super::Matrix::<f64> {
+            m: vec![
+                // 1st row
+                rpy[2].cos() * rpy[1].cos(),
+                (0..3)
+                    .into_par_iter()
+                    .map(|i| if i == 2 { rpy[i].cos() } else { rpy[i].sin() })
+                    .product::<f64>()
+                    - rpy[2].sin() * rpy[0].cos(),
+                (0..3)
+                    .into_par_iter()
+                    .map(|i| if i == 1 { rpy[i].sin() } else { rpy[i].cos() })
+                    .product::<f64>()
+                    + rpy[2].sin() * rpy[0].sin(),
+                // 2nd row
+                rpy[2].sin() * rpy[1].cos(),
+                rpy.par_iter().map(|rpy_i| (*rpy_i).sin()).product::<f64>()
+                    * rpy[2].cos()
+                    * rpy[0].cos(),
+                (0..3)
+                    .into_par_iter()
+                    .map(|i| if i != 0 { rpy[i].cos() } else { rpy[i].sin() })
+                    .product::<f64>()
+                    - rpy[2].cos() * rpy[0].sin(),
+                // 3rd row
+                -rpy[1].sin(),
+                (0..2)
+                    .into_par_iter()
+                    .map(|i| if i == 0 { rpy[i].sin() } else { rpy[i].cos() })
+                    .product(),
+                (0..2).into_par_iter().map(|i| rpy[i].cos()).product(),
+            ],
+            size: [3, 3],
+        };
+
+        self.dot(&rotation_matrix)
+    }
+}
+
+impl_rpy! {i8}
+impl_rpy! {i16}
+impl_rpy! {i32}
+impl_rpy! {u8}
+impl_rpy! {u16}
+impl_rpy! {u32}
+impl_rpy! {f32}
