@@ -61,3 +61,9 @@ fn round() {
         }
     )
 }
+
+#[test]
+fn rpy_ok() {}
+
+#[test]
+fn rpy_err() {}
