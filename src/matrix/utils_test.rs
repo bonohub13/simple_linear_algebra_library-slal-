@@ -1,5 +1,11 @@
 use super::Matrix;
-use crate::utils::Round;
+use crate::utils::{Round, RPY};
+
+fn get_type_name<T>(_: &T) -> &'static str {
+    use std::any::type_name;
+
+    format!("{}", type_name::<T>()).as_str()
+}
 
 #[test]
 fn index() {
@@ -62,8 +68,68 @@ fn round() {
     )
 }
 
-#[test]
-fn rpy_ok() {}
+// For rpy_<type>_ok(), perform datatype check as well
 
 #[test]
-fn rpy_err() {}
+fn rpy_i8_ok() {
+    let p0 = Matrix::<i8>::new(&[&[2, 3, 5], &[4, 9, 25], &[8, 27, 125]]).unwrap();
+
+    match p0.rpy([0., f64::to_radians(90.), f64::to_radians(180.)]) {
+        Ok(p1) => assert!(get_type_name(&p1) == "slal::matrix::Matrix<f64>"),
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn rpy_i16_ok() {}
+
+#[test]
+fn rpy_i32_ok() {}
+
+#[test]
+fn rpy_u8_ok() {}
+
+#[test]
+fn rpy_u16_ok() {}
+
+#[test]
+fn rpy_u32_ok() {}
+
+#[test]
+fn rpy_f16_ok() {}
+
+#[test]
+fn rpy_f32_ok() {}
+
+#[test]
+fn rpy_f64_ok() {}
+
+// No testing for error currently because any error would result from
+// slal::linear::Dot, not from slal::utils::RPY
+
+#[test]
+fn rpy_i8_err() {}
+
+#[test]
+fn rpy_i16_err() {}
+
+#[test]
+fn rpy_i32_err() {}
+
+#[test]
+fn rpy_u8_err() {}
+
+#[test]
+fn rpy_u16_err() {}
+
+#[test]
+fn rpy_u32_err() {}
+
+#[test]
+fn rpy_f16_err() {}
+
+#[test]
+fn rpy_f32_err() {}
+
+#[test]
+fn rpy_f64_err() {}
