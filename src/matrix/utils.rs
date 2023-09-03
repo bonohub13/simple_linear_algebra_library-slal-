@@ -65,6 +65,10 @@ macro_rules! impl_rpy {
                 use crate::linear::Dot;
                 use rayon::prelude::*;
 
+                // TODO: Change the implementation for computing rotation matrix
+                //  Currently the individual values are done in a single thread
+                //  Change this so individual values are computed using different threads
+                //      TLDR: Multithread based on value
                 let rotation_matrix = super::Matrix::<f64> {
                     m: vec![
                         // 1st row
@@ -113,6 +117,10 @@ impl crate::utils::RPY for super::Matrix<f64> {
         use crate::linear::Dot;
         use rayon::prelude::*;
 
+        // TODO: Change the implementation for computing rotation matrix
+        //  Currently the individual values are done in a single thread
+        //  Change this so individual values are computed using different threads
+        //      TLDR: Multithread based on value
         let rotation_matrix = super::Matrix::<f64> {
             m: vec![
                 // 1st row

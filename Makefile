@@ -27,10 +27,10 @@ run:
 	./bin/${BIN}
 
 test: fmt
-	$(CC) test --release
+	$(CC) test
 
 test-offline: fmt
-	$(CC) test --release --offline
+	$(CC) test --offline
 
 build-linux-image:
 	tar cvf docker/build.tar ${SRC_DIR} ${CARGO_TOML} ${LIB_DIR}
